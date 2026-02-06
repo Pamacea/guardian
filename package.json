@@ -1,0 +1,30 @@
+{
+  "name": "@oalacea/guardian",
+  "version": "1.0.0",
+  "description": "AI-powered security review plugin for pentesting web applications",
+  "bin": {
+    "guardian": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "bin/Dockerfile",
+    "prompt/",
+    "docker/"
+  ],
+  "keywords": [
+    "pentest",
+    "security",
+    "web-security",
+    "api-security",
+    "vulnerability-scanner",
+    "ai-security",
+    "bug-bounty",
+    "security-audit"
+  ],
+  "author": "Yanis",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pamacea/guardian"
+  }
+}
