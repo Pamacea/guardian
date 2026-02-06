@@ -7,12 +7,7 @@ const path = require('path');
 
 // --- Config ---
 const IMAGE_NAME = 'guardian-tools';
-// Unique container name per project to avoid conflicts
-const projectSlug = path.basename(process.cwd())
-  .replace(/[^a-z0-9]/gi, '-')
-  .toLowerCase()
-  .slice(0, 20);
-const CONTAINER_NAME = `guardian-${projectSlug}`;
+const CONTAINER_NAME = 'guardian-tools';
 const PROMPT_SRC = path.join(__dirname, '..', 'prompt', 'REVIEW.md');
 const PROMPT_DEST = path.join(process.cwd(), '.guardian', 'REVIEW.md');
 // Dockerfile is copied to bin/ directory for reliable Windows compatibility

@@ -37,6 +37,8 @@ The AI will:
 5. Verify each fix
 6. Provide a summary
 
+This task can take several minutes depending on the complexity of your application and the number of vulnerabilities found.
+
 ## What You Need
 
 - **Docker** — [Install](https://docs.docker.com/get-docker/)
