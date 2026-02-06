@@ -26,7 +26,7 @@ npx @oalacea/guardian https://example.com
 After installation, open your AI coding agent and paste:
 
 ```
-Read ~/.guardian/REVIEW.md and start the security review
+Read .guardian/REVIEW.md and start the security review
 ```
 
 The AI will:
@@ -52,14 +52,13 @@ The Docker toolkit includes:
 |----------|-------|
 | Recon | nmap, subfinder, whatweb, httpx |
 | Vuln Scanning | nuclei, nikto |
-| Discovery | ffuf, arjun |
+| Discovery | ffuf |
 | SQL Injection | sqlmap |
 | XSS | dalfox |
 | JWT | jwt_tool |
 | Brute Force | hydra |
-| Command Injection | commix |
 | SSL/TLS | testssl.sh |
-| Wordlists | SecLists (Web-Content, DNS, Fuzzing, Passwords) |
+| Wordlists | SecLists (Web-Content, DNS, Fuzzing, SQLi, Passwords) |
 
 ## What It Tests
 
