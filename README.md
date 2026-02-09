@@ -1,5 +1,11 @@
 # Guardian
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub release](https://img.shields.io/github/v/release/Pamacea/guardian)](https://github.com/Pamacea/guardian/releases/latest)
+[![CI](https://github.com/Pamacea/guardian/actions/workflows/ci.yml/badge.svg)](https://github.com/Pamacea/guardian/actions)
+
+
+
 AI-powered security review plugin for pentesting web applications. Automated vulnerability scanning and remediation with zero configuration.
 
 ## Quick Start
