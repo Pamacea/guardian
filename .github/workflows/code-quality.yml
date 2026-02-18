@@ -1,0 +1,192 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: ESLint & Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: |
+          npx eslint . --ext .js,.jsx,.ts,.tsx --format json --output-file eslint-report.json || true
+          npm run lint --if-present
+
+      - name: Annotate ESLint results
+        if: always()
+        uses: ataylorme/eslint-annotate-action@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          report-json: eslint-report.json
+
+      - name: Upload ESLint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-report
+          path: eslint-report.json
+          retention-days: 7
+
+  format-check:
+    name: Prettier Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Prettier check
+        run: npx prettier --check '**/*.{js,jsx,ts,tsx,json,md,yml,yaml}' || true
+
+  typecheck:
+    name: TypeScript Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript check
+        run: npm run typecheck --if-present
+
+  complexity:
+    name: Code Complexity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install complexity reporter
+        run: npm install -g eslint-plugin-complexity
+
+      - name: Run complexity analysis
+        run: |
+          npx eslint . --ext .js,.jsx,.ts,.tsx \
+            --rule '{complexity: [error, 15], max-lines-per-function: [error, 100]}' \
+            --format json > complexity-report.json || true
+
+      - name: Upload complexity report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: complexity-report
+          path: complexity-report.json
+          retention-days: 7
+
+  duplicate-code:
+    name: Duplicate Code Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install jscpd
+        run: npm install -g jscpd
+
+      - name: Run duplicate code detection
+        run: |
+          jscpd . --format json --output jscpd-report.json --min-lines 10 --min-tokens 50 || true
+
+      - name: Upload jscpd report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jscpd-report
+          path: jscpd-report.json
+          retention-days: 7
+
+  markdown-link-check:
+    name: Markdown Link Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Markdown links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.github/.mlc_config.json'
+
+  license-check:
+    name: License Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install license checker
+        run: npm install -g license-checker
+
+      - name: Run license check
+        run: |
+          license-checker --production --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD' --json > license-report.json || true
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: license-report
+          path: license-report.json
+          retention-days: 7

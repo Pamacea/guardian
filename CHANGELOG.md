@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-02-18
+
+### Security
+
+- **CRITICAL**: Fixed command injection vulnerability by replacing execSync with spawn()
+- Added comprehensive input validation (URL, path, Docker name)
+- Added SSRF protection with blocked hostnames and private IP ranges
+- Added path traversal protection
+- All Docker commands now use array arguments instead of string interpolation
+
+### Added
+
+- Complete testing infrastructure with Vitest
+  - Unit tests for CLI, validation, Docker wrapper
+  - Security-specific tests (command injection, path traversal)
+  - 80% coverage threshold
+- CI/CD pipeline with GitHub Actions
+  - Lint, test, and typecheck jobs
+  - Docker build with multi-arch support
+  - Security scanning with Trivy
+  - Dependency review
+- ESLint configuration with security plugin
+- TypeScript configuration for type checking
+- Modular CLI architecture
+  - `bin/config.js` - Configuration management
+  - `bin/docker.js` - Docker wrapper with spawn
+  - `bin/platform.js` - Platform detection
+  - `bin/prompt.js` - Prompt generation
+  - `bin/validation.js` - Input validation
+  - `bin/ui/colors.js` - ANSI utilities
+  - `bin/ui/output.js` - Formatted output
+- Documentation
+  - `docs/ARCHITECTURE.md` - Complete architecture documentation
+  - `CONTRIBUTING.md` - Contribution guidelines
+- Dependabot configuration for GitHub Actions updates
+
+### Changed
+
+- Optimized Docker image with multi-stage build (~550-650 MB, down from ~800 MB)
+- Split wordlist downloads into cacheable layers for faster rebuilds
+- Improved Docker layer caching with .dockerignore
+- Enhanced README with updated image size information
+
+### Fixed
+
+- Dockerfile path now uses `docker/Dockerfile` instead of `bin/Dockerfile`
+- Removed duplicate `bin/Dockerfile` (insecure version)
+
+### Developer Experience
+
+- New npm scripts: lint, test, test:watch, test:coverage, test:security, validate
+- Better error messages with structured error types
+- Improved logging with color-coded output
+
 ## [1.0.1-alpha] - 2025-02-09
 
 ### Changed

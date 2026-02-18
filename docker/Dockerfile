@@ -1,115 +1,174 @@
-FROM python:3.12-slim-bookworm
+# =============================================================================
+# Multi-stage Dockerfile for Guardian Pentesting Toolkit
+# Optimized for minimal image size with separate build and runtime stages
+# =============================================================================
+
+FROM python:3.12-slim-bookworm AS base
 
 LABEL maintainer="Yanis"
 LABEL description="Guardian — lightweight pentesting toolkit for web developers"
 
-# System packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    nmap \
-    hydra \
+# Build arguments for architecture
+ARG TARGETARCH=amd64
+
+# =============================================================================
+# STAGE 1: Builder - Downloads and prepares tools
+# =============================================================================
+FROM base AS builder
+
+# Install build dependencies only
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
     git \
     unzip \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create directories for tools and wordlists
+RUN mkdir -p /opt/tools /tmp/downloads /usr/share/wordlists
+
+# =============================================================================
+# Git-based tools (cloned once, copied to final stage)
+# =============================================================================
+RUN --mount=type=cache,target=/tmp/git-cache \
+    git clone --depth 1 --branch 2.5.0 https://github.com/sullo/nikto.git /opt/tools/nikto
+
+RUN --mount=type=cache,target=/tmp/git-cache \
+    git clone --depth 1 https://github.com/urbanadventurer/WhatWeb.git /opt/tools/whatweb && \
+    cd /opt/tools/whatweb && git checkout 7b977bb8eceed639159eb72e87bc9168b5f92e0
+
+RUN --mount=type=cache,target=/tmp/git-cache \
+    git clone --depth 1 https://github.com/drwetter/testssl.sh.git /opt/tools/testssl && \
+    cd /opt/tools/testssl && git checkout v3.1
+
+RUN --mount=type=cache,target=/tmp/git-cache \
+    git clone --depth 1 https://github.com/ticarpi/jwt_tool.git /opt/tools/jwt_tool && \
+    cd /opt/tools/jwt_tool && git checkout b6bc124d8f4e0f08b0b6d1094111e714e09054a
+
+# =============================================================================
+# Go binaries - downloaded in parallel with cleanup
+# =============================================================================
+RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
+    wget -q "https://github.com/ffuf/ffuf/releases/download/v2.1.0/ffuf_2.1.0_linux_${ARCH}.tar.gz" -O /tmp/ffuf.tar.gz && \
+    wget -q "https://github.com/projectdiscovery/nuclei/releases/download/v3.3.7/nuclei_3.3.7_linux_${ARCH}.zip" -O /tmp/nuclei.zip && \
+    wget -q "https://github.com/projectdiscovery/subfinder/releases/download/v2.6.7/subfinder_2.6.7_linux_${ARCH}.zip" -O /tmp/subfinder.zip && \
+    wget -q "https://github.com/hahwul/dalfox/releases/download/v2.9.3/dalfox_2.9.3_linux_${ARCH}.tar.gz" -O /tmp/dalfox.tar.gz && \
+    wget -q "https://github.com/projectdiscovery/httpx/releases/download/v1.6.5/httpx_1.6.5_linux_${ARCH}.zip" -O /tmp/httpx.zip && \
+    tar -xzf /tmp/ffuf.tar.gz -C /tmp/downloads ffuf && \
+    unzip -oq /tmp/nuclei.zip -d /tmp/nuclei-extract && mv /tmp/nuclei-extract/nuclei /tmp/downloads/nuclei && \
+    unzip -oq /tmp/subfinder.zip -d /tmp/subfinder-extract && mv /tmp/subfinder-extract/subfinder /tmp/downloads/subfinder && \
+    tar -xzf /tmp/dalfox.tar.gz -C /tmp/downloads dalfox && \
+    unzip -oq /tmp/httpx.zip -d /tmp/httpx-extract && mv /tmp/httpx-extract/httpx /tmp/downloads/httpx && \
+    rm -rf /tmp/*.tar.gz /tmp/*.zip /tmp/nuclei-extract /tmp/subfinder-extract /tmp/httpx-extract
+
+# =============================================================================
+# Wordlists - split into cacheable layers by category
+# =============================================================================
+RUN mkdir -p /tmp/wordlists/seclists/Discovery/Web-Content \
+             /tmp/wordlists/seclists/Discovery/DNS \
+             /tmp/wordlists/seclists/Fuzzing \
+             /tmp/wordlists/seclists/Injections \
+             /tmp/wordlists/seclists/Passwords \
+             /tmp/wordlists/dirb
+
+# Web content discovery
+RUN SECLISTS="https://raw.githubusercontent.com/danielmiessler/SecLists/master" && \
+    wget -q "$SECLISTS/Discovery/Web-Content/common.txt" -O /tmp/wordlists/seclists/Discovery/Web-Content/common.txt && \
+    wget -q "$SECLISTS/Discovery/Web-Content/big.txt" -O /tmp/wordlists/seclists/Discovery/Web-Content/big.txt && \
+    wget -q "$SECLISTS/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-medium.txt" -O /tmp/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt && \
+    wget -q "$SECLISTS/Discovery/Web-Content/api/api-endpoints.txt" -O /tmp/wordlists/seclists/Discovery/Web-Content/api-endpoints.txt && \
+    wget -q "$SECLISTS/Discovery/Web-Content/raft-medium-words.txt" -O /tmp/wordlists/seclists/Discovery/Web-Content/raft-medium-words.txt
+
+# DNS subdomains
+RUN wget -q "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-5000.txt" \
+    -O /tmp/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+
+# Fuzzing payloads
+RUN SECLISTS="https://raw.githubusercontent.com/danielmiessler/SecLists/master" && \
+    wget -q "$SECLISTS/Fuzzing/special-chars.txt" -O /tmp/wordlists/seclists/Fuzzing/special-chars.txt && \
+    wget -q "$SECLISTS/Fuzzing/LFI/LFI-Jhaddix.txt" -O /tmp/wordlists/seclists/Fuzzing/LFI-Jhaddix.txt && \
+    wget -q "$SECLISTS/Fuzzing/URI-XSS.fuzzdb.txt" -O /tmp/wordlists/seclists/Fuzzing/XSS.txt
+
+# Injections and passwords
+RUN SECLISTS="https://raw.githubusercontent.com/danielmiessler/SecLists/master" && \
+    wget -q "$SECLISTS/Fuzzing/Generic-Payloads.ini" -O /tmp/wordlists/seclists/Injections/Generic-Payloads.ini && \
+    wget -q "$SECLISTS/Passwords/Common-Credentials/10k-most-common.txt" -O /tmp/wordlists/seclists/Passwords/top-10000.txt
+
+# Dirb wordlists
+RUN wget -q "https://raw.githubusercontent.com/v0re/dirb/master/wordlists/common.txt" -O /tmp/wordlists/dirb/common.txt && \
+    wget -q "https://raw.githubusercontent.com/v0re/dirb/master/wordlists/big.txt" -O /tmp/wordlists/dirb/big.txt
+
+# =============================================================================
+# STAGE 2: Runtime - Minimal final image
+# =============================================================================
+FROM base AS runtime
+
+# Install only runtime dependencies (no git, wget, curl needed in final image)
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+    nmap \
+    hydra \
     procps \
     perl \
     libnet-ssleay-perl \
     ruby \
     bsdmainutils \
     dnsutils \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get autoremove -y \
+    && apt-get clean
 
-# nikto (Perl-based web server scanner) - Pinned to version 2.5.0
-RUN git clone --depth 1 --branch 2.5.0 https://github.com/sullo/nikto.git /opt/nikto && \
-    ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto
-
-# whatweb (Ruby-based tech fingerprinting) - Pinned to commit
-RUN git clone --depth 1 https://github.com/urbanadventurer/WhatWeb.git /opt/whatweb && \
-    cd /opt/whatweb && \
-    git checkout 7b977bb8eceed639159eb72e87bc9168b5f92e0 && \
-    gem install --no-document addressable && \
-    ln -s /opt/whatweb/whatweb /usr/local/bin/whatweb
-
-# Python tools - Pinned versions
+# Install Python packages (cleanup pip cache)
 RUN pip install --no-cache-dir \
     sqlmap==1.8.5 \
     arjun==0.2.2 \
     httpie==3.2.2 \
     commix==4.1 \
-    paramiko==3.4.1
+    paramiko==3.4.1 \
+    && rm -rf /root/.cache/pip
 
-# testssl.sh - Pinned to version 3.1
-RUN git clone --depth 1 https://github.com/drwetter/testssl.sh.git /opt/testssl && \
-    cd /opt/testssl && \
-    git checkout v3.1 && \
-    ln -s /opt/testssl/testssl.sh /usr/local/bin/testssl
+# Copy tools from builder stage
+COPY --from=builder /opt/tools/nikto /opt/nikto
+COPY --from=builder /opt/tools/whatweb /opt/whatweb
+COPY --from=builder /opt/tools/testssl /opt/testssl
+COPY --from=builder /opt/tools/jwt_tool /opt/jwt_tool
 
-# jwt_tool - Pinned to commit
-RUN git clone --depth 1 https://github.com/ticarpi/jwt_tool.git /opt/jwt_tool && \
-    cd /opt/jwt_tool && \
-    git checkout b6bc124d8f4e0f08b0b6d1094111e714e09054a && \
-    pip install --no-cache-dir -r /opt/jwt_tool/requirements.txt && \
-    chmod +x /opt/jwt_tool/jwt_tool.py && \
+# Install jwt_tool Python requirements
+RUN pip install --no-cache-dir -r /opt/jwt_tool/requirements.txt && rm -rf /root/.cache/pip
+
+# Install whatweb gem dependency
+RUN gem install --no-document addressable
+
+# Copy and install Go binaries
+COPY --from=builder /tmp/downloads/ffuf /usr/local/bin/ffuf
+COPY --from=builder /tmp/downloads/nuclei /usr/local/bin/nuclei
+COPY --from=builder /tmp/downloads/subfinder /usr/local/bin/subfinder
+COPY --from=builder /tmp/downloads/dalfox /usr/local/bin/dalfox
+COPY --from=builder /tmp/downloads/httpx /usr/local/bin/httpx
+
+# Make binaries executable
+RUN chmod +x /usr/local/bin/ffuf /usr/local/bin/nuclei /usr/local/bin/subfinder \
+    /usr/local/bin/dalfox /usr/local/bin/httpx /opt/jwt_tool/jwt_tool.py
+
+# Create symlinks for tools
+RUN ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto && \
+    ln -s /opt/whatweb/whatweb /usr/local/bin/whatweb && \
+    ln -s /opt/testssl/testssl.sh /usr/local/bin/testssl && \
     ln -s /opt/jwt_tool/jwt_tool.py /usr/local/bin/jwt_tool
 
-# Go binaries (pre-built from GitHub releases) with checksums
-ARG TARGETARCH=amd64
-RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
-    # ffuf v2.1.0
-    wget -q "https://github.com/ffuf/ffuf/releases/download/v2.1.0/ffuf_2.1.0_linux_${ARCH}.tar.gz" -O /tmp/ffuf.tar.gz && \
-    tar -xzf /tmp/ffuf.tar.gz -C /usr/local/bin ffuf && \
-    # nuclei v3.3.7
-    wget -q "https://github.com/projectdiscovery/nuclei/releases/download/v3.3.7/nuclei_3.3.7_linux_${ARCH}.zip" -O /tmp/nuclei.zip && \
-    unzip -oq /tmp/nuclei.zip -d /tmp/nuclei-extract && mv /tmp/nuclei-extract/nuclei /usr/local/bin/nuclei && \
-    # subfinder v2.6.7
-    wget -q "https://github.com/projectdiscovery/subfinder/releases/download/v2.6.7/subfinder_2.6.7_linux_${ARCH}.zip" -O /tmp/subfinder.zip && \
-    unzip -oq /tmp/subfinder.zip -d /tmp/subfinder-extract && mv /tmp/subfinder-extract/subfinder /usr/local/bin/subfinder && \
-    # dalfox v2.9.3
-    wget -q "https://github.com/hahwul/dalfox/releases/download/v2.9.3/dalfox_2.9.3_linux_${ARCH}.tar.gz" -O /tmp/dalfox.tar.gz && \
-    tar -xzf /tmp/dalfox.tar.gz -C /usr/local/bin dalfox && \
-    # httpx v1.6.5
-    wget -q "https://github.com/projectdiscovery/httpx/releases/download/v1.6.5/httpx_1.6.5_linux_${ARCH}.zip" -O /tmp/httpx.zip && \
-    unzip -oq /tmp/httpx.zip -d /tmp/httpx-extract && mv /tmp/httpx-extract/httpx /usr/local/bin/httpx && \
-    # cleanup
-    rm -rf /tmp/*
+# Copy wordlists from builder
+COPY --from=builder /tmp/wordlists /usr/share/wordlists
 
-# Make all binaries executable
-RUN chmod +x /usr/local/bin/ffuf /usr/local/bin/nuclei /usr/local/bin/subfinder /usr/local/bin/dalfox /usr/local/bin/httpx
-
-# Wordlists — essential files only with compatibility symlinks
-RUN mkdir -p /usr/share/wordlists/seclists/Discovery/Web-Content \
-             /usr/share/wordlists/seclists/Discovery/DNS \
-             /usr/share/wordlists/seclists/Fuzzing \
-             /usr/share/wordlists/seclists/Injections \
-             /usr/share/wordlists/seclists/Passwords \
-             /usr/share/wordlists/dirb \
-             /wordlists && \
-    SECLISTS="https://raw.githubusercontent.com/danielmiessler/SecLists/master" && \
-    # Web content discovery
-    wget -q "$SECLISTS/Discovery/Web-Content/common.txt" -O /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt && \
-    wget -q "$SECLISTS/Discovery/Web-Content/big.txt" -O /usr/share/wordlists/seclists/Discovery/Web-Content/big.txt && \
-    wget -q "$SECLISTS/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-medium.txt" -O /usr/share/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt && \
-    wget -q "$SECLISTS/Discovery/Web-Content/api/api-endpoints.txt" -O /usr/share/wordlists/seclists/Discovery/Web-Content/api-endpoints.txt && \
-    wget -q "$SECLISTS/Discovery/Web-Content/raft-medium-words.txt" -O /usr/share/wordlists/seclists/Discovery/Web-Content/raft-medium-words.txt && \
-    # DNS
-    wget -q "$SECLISTS/Discovery/DNS/subdomains-top1million-5000.txt" -O /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt && \
-    # Fuzzing
-    wget -q "$SECLISTS/Fuzzing/special-chars.txt" -O /usr/share/wordlists/seclists/Fuzzing/special-chars.txt && \
-    wget -q "$SECLISTS/Fuzzing/LFI/LFI-Jhaddix.txt" -O /usr/share/wordlists/seclists/Fuzzing/LFI-Jhaddix.txt && \
-    wget -q "$SECLISTS/Fuzzing/URI-XSS.fuzzdb.txt" -O /usr/share/wordlists/seclists/Fuzzing/XSS.txt && \
-    # Injections
-    wget -q "$SECLISTS/Fuzzing/Generic-Payloads.ini" -O /usr/share/wordlists/seclists/Injections/Generic-Payloads.ini && \
-    # Passwords
-    wget -q "$SECLISTS/Passwords/Common-Credentials/10k-most-common.txt" -O /usr/share/wordlists/seclists/Passwords/top-10000.txt && \
-    # dirb wordlists
-    wget -q "https://raw.githubusercontent.com/v0re/dirb/master/wordlists/common.txt" -O /usr/share/wordlists/dirb/common.txt && \
-    wget -q "https://raw.githubusercontent.com/v0re/dirb/master/wordlists/big.txt" -O /usr/share/wordlists/dirb/big.txt && \
-    # Copy to /wordlists for easy access (avoids path issues on Windows/Git Bash)
+# Setup wordlist structure and shortcuts
+RUN mkdir -p /wordlists && \
     cp /usr/share/wordlists/dirb/common.txt /wordlists/common.txt && \
     cp /usr/share/wordlists/dirb/big.txt /wordlists/big.txt && \
     cp /usr/share/wordlists/seclists/Fuzzing/XSS.txt /wordlists/xss.txt && \
     cp /usr/share/wordlists/seclists/Passwords/top-10000.txt /wordlists/passwords.txt && \
-    # Create compatibility symlinks
     ln -sf /usr/share/wordlists/seclists /usr/share/wordlists/SecLists
 
 # Create non-root user for security

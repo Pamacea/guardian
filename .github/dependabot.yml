@@ -1,0 +1,77 @@
+version: 2
+updates:
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    ignore:
+      # Major version updates that may require testing
+      - dependency-name: "actions/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "docker/*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      github-actions:
+        patterns:
+          - "actions/*"
+          - "docker/*"
+        exclude-patterns:
+          - "actions/setup-node"
+
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+      - "automated"
+    versioning-strategy: increase
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      dev-dependencies:
+        patterns:
+          - "@types/*"
+          - "eslint*"
+          - "prettier*"
+          - "*lint*"
+        exclude-patterns:
+          - "@types/node"
+    ignore:
+      # Ignore major updates for critical packages
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+  # Docker base images
+  - package-ecosystem: "docker"
+    directory: "/bin"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    ignore:
+      # Pin Python base image
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major"]
