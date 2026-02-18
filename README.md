@@ -17,7 +17,7 @@ AI-powered security review plugin for pentesting web applications. Automated vul
 npx @oalacea/guardian
 ```
 
-First run installs the security toolkit (~800 MB Docker image, takes 2-3 minutes).
+First run installs the security toolkit (~550-650 MB Docker image, takes 2-3 minutes).
 
 ### Production Mode
 

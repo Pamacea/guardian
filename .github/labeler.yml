@@ -1,0 +1,43 @@
+# Auto-label PRs based on changed files
+
+dependencies:
+  - package.json
+  - package-lock.json
+  - .github/dependabot.yml
+
+docker:
+  - bin/Dockerfile
+  - docker/Dockerfile
+  - docker/**/*
+  - .dockerignore
+
+ci:
+  - .github/workflows/**/*
+  - .github/**/action.yml
+
+documentation:
+  - "**/*.md"
+  - "**/*.txt"
+  - docs/**/*
+  - "!**/CHANGELOG.md"
+
+security:
+  - "**/*security*"
+  - "**/*scan*"
+  - "**/*audit*"
+
+cli:
+  - bin/cli.js
+  - bin/**/*
+  - "**/*.sh"
+
+tooling:
+  - ".eslintrc*"
+  - ".prettierrc*"
+  - "tsconfig.json"
+  - ".github/.mlc_config.json"
+
+configuration:
+  - ".gitignore"
+  - ".npmignore"
+  - ".nvmrc"

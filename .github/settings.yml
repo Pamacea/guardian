@@ -1,0 +1,58 @@
+# GitHub Repository Settings
+# Apply these settings via https://github.com/github/.github/blob/main/docs/settings.md
+
+# Repository settings
+repository:
+  # Description
+  description: "AI-powered security review plugin for pentesting web applications"
+  topics:
+    - pentesting
+    - security
+    - docker
+    - web-security
+    - vulnerability-scanner
+    - bug-bounty
+    - cli
+    - cybersecurity
+
+  # Visibility
+  visibility: "public"
+  has_issues: true
+  has_projects: false
+  has_wiki: false
+  has_discussions: false
+  has_downloads: true
+
+  # Security
+  security:
+    vulnerability_alerts: true
+    automated_security_fixes: true
+
+  # Merge settings
+  allow_merge_commit: false
+  allow_squash_merge: true
+  allow_rebase_merge: false
+  delete_branch_on_merge: true
+
+  # Default branch
+  default_branch: "main"
+
+# Branch protection
+branches:
+  - name: "main"
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+      require_status_checks: true
+      required_status_checks:
+        strict: true
+        contexts:
+          - CI / Lint
+          - CI / Test
+          - Code Quality / ESLint & Prettier
+          - Security / Docker Image Scanning
+      enforce_admins: true
+      allow_force_pushes: false
+      allow_deletions: false

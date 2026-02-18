@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
+const { spawn } = require('child_process');
 const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
+const { validateUrl, validateDockerName } = require('./validation');
 
 // --- Config ---
 const IMAGE_NAME = 'guardian-tools';
 const CONTAINER_NAME = 'guardian-tools';
 const PROMPT_SRC = path.join(__dirname, '..', 'prompt', 'REVIEW.md');
 const PROMPT_DEST = path.join(process.cwd(), '.guardian', 'REVIEW.md');
-// Dockerfile is copied to bin/ directory for reliable Windows compatibility
-const DOCKERFILE = path.join(__dirname, 'Dockerfile');
+// Use docker/Dockerfile for security
+const DOCKERFILE = path.join(__dirname, '..', 'docker', 'Dockerfile');
+const DOCKERFILE_DIR = path.dirname(DOCKERFILE);
 
 // --- Colors ---
 const green = (s) => `\x1b[32m${s}\x1b[0m`;
@@ -22,18 +24,107 @@ const dim = (s) => `\x1b[2m${s}\x1b[0m`;
 const cyan = (s) => `\x1b[36m${s}\x1b[0m`;
 const blue = (s) => `\x1b[34m${s}\x1b[0m`;
 
-function run(cmd, { silent = false, timeout = 60000 } = {}) {
-  try {
-    return execSync(cmd, { encoding: 'utf-8', stdio: 'pipe', timeout }).trim();
-  } catch (error) {
-    if (!silent) {
-      // Only show debug for unexpected failures
-      if (error.status !== null) {
-        console.error(dim(`  [debug] Command exited with code ${error.status}`));
-      }
+/**
+ * Safely execute a command using spawn with array arguments.
+ * This prevents command injection by avoiding shell interpretation.
+ *
+ * @param {string[]} args - Command and arguments as array (e.g., ['docker', 'ps'])
+ * @param {object} options - Options object
+ * @param {boolean} options.silent - Suppress error output
+ * @param {number} options.timeout - Timeout in milliseconds (default: 60000)
+ * @returns {string|null} Command output or null on failure
+ */
+function run(args, { silent = false, timeout = 60000 } = {}) {
+  return new Promise((resolve) => {
+    if (!Array.isArray(args) || args.length === 0) {
+      if (!silent) console.error(dim('  [debug] Invalid command arguments'));
+      resolve(null);
+      return;
     }
-    return null;
-  }
+
+    const [command, ...cmdArgs] = args;
+    let stdout = '';
+    let stderr = '';
+    let killed = false;
+
+    const timer = setTimeout(() => {
+      killed = true;
+      child.kill('SIGTERM');
+    }, timeout);
+
+    const child = spawn(command, cmdArgs, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      shell: false, // Critical: never use shell to prevent injection
+      windowsHide: true,
+    });
+
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      if (killed) {
+        if (!silent) console.error(dim('  [debug] Command timed out'));
+        resolve(null);
+        return;
+      }
+      if (code === 0) {
+        resolve(stdout.trim());
+      } else {
+        if (!silent && stderr) {
+          console.error(dim(`  [debug] Command exited with code ${code}`));
+        }
+        resolve(null);
+      }
+    });
+
+    child.on('error', (err) => {
+      clearTimeout(timer);
+      if (!silent) {
+        console.error(dim(`  [debug] Command error: ${err.message}`));
+      }
+      resolve(null);
+    });
+  });
+}
+
+/**
+ * Run a command with inherited stdio (for interactive operations like build)
+ * Uses spawn with array arguments to prevent command injection.
+ *
+ * @param {string[]} args - Command and arguments as array
+ * @param {number} timeout - Timeout in milliseconds
+ * @returns {Promise<boolean>} True if successful, false otherwise
+ */
+async function runInherit(args, timeout = 600000) {
+  const [command, ...cmdArgs] = args;
+
+  return new Promise((resolve) => {
+    const child = spawn(command, cmdArgs, {
+      stdio: 'inherit',
+      shell: false, // Critical: never use shell to prevent injection
+      windowsHide: true,
+    });
+
+    const timer = setTimeout(() => {
+      child.kill('SIGTERM');
+    }, timeout);
+
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      resolve(code === 0);
+    });
+
+    child.on('error', () => {
+      clearTimeout(timer);
+      resolve(false);
+    });
+  });
 }
 
 function fail(msg) {
@@ -88,8 +179,24 @@ async function main() {
   const isMac = process.platform === 'darwin';
   const isWindows = process.platform === 'win32';
 
-  const targetUrl = process.argv[2] && isUrl(process.argv[2]) ? process.argv[2] : null;
+  // Validate and parse target URL if provided
+  let targetUrl = null;
+  const urlArg = process.argv[2];
+  if (urlArg && isUrl(urlArg)) {
+    const validation = validateUrl(urlArg);
+    if (!validation.valid) {
+      fail(`Invalid target URL: ${validation.error}`);
+    }
+    targetUrl = urlArg;
+  }
   const productionMode = !!targetUrl;
+
+  // Validate Docker names (defensive programming)
+  const imageNameValidation = validateDockerName(IMAGE_NAME);
+  const containerNameValidation = validateDockerName(CONTAINER_NAME);
+  if (!imageNameValidation.valid || !containerNameValidation.valid) {
+    fail('Internal error: Invalid Docker name configuration');
+  }
 
   console.log('');
   console.log(bold(blue('  ╔═══════════════════════════════════════╗')));
@@ -101,7 +208,8 @@ async function main() {
   console.log('');
 
   // --- Step 1: Check Docker ---
-  if (run('docker info', { silent: true }) === null) {
+  const dockerInfo = await run(['docker', 'info'], { silent: true });
+  if (dockerInfo === null) {
     fail(`Docker is not running.
 
   Start Docker Desktop (or the Docker daemon) and try again.
@@ -111,11 +219,11 @@ async function main() {
   console.log(`  ${green('✓')} Docker is running`);
 
   // --- Step 2: Build image if missing ---
-  const imageExists = run(`docker images -q ${IMAGE_NAME}`);
+  const imageExists = await run(['docker', 'images', '-q', IMAGE_NAME]);
 
   if (!imageExists) {
     console.log('');
-    console.log(`  ${yellow('◆')} The security toolkit needs to be installed (~800 MB Docker image).`);
+    console.log(`  ${yellow('◆')} The security toolkit needs to be installed (~550-650 MB Docker image).`);
     console.log(`  ${dim('This only happens once.')}`);
     console.log('');
     const answer = await ask(`  Install it now? ${dim('(Y/n)')} `);
@@ -129,16 +237,21 @@ async function main() {
     console.log(`  ${yellow('→')} Building security toolkit...`);
     console.log(dim('  This may take 2-3 minutes on first run...'));
     console.log('');
-    try {
-      execSync(
-        `docker build -t ${IMAGE_NAME} -f "${DOCKERFILE}" "${path.dirname(DOCKERFILE)}"`,
-        { stdio: 'inherit', timeout: 600000 } // 10 minutes
-      );
-    } catch {
+
+    // Secure docker build command using spawn with array arguments
+    const buildSuccess = await runInherit([
+      'docker',
+      'build',
+      '-t', IMAGE_NAME,
+      '-f', DOCKERFILE,
+      DOCKERFILE_DIR
+    ], 600000);
+
+    if (!buildSuccess) {
       fail(`Failed to build the security toolkit image.
 
   Try manually:
-    ${cyan(`docker build -t ${IMAGE_NAME} -f "${DOCKERFILE}" "${path.dirname(DOCKERFILE)}"`)}`);
+    ${cyan(`docker build -t ${IMAGE_NAME} -f "${DOCKERFILE}" "${DOCKERFILE_DIR}"`)}`);
     }
     console.log('');
     console.log(`  ${green('✓')} Security toolkit installed`);
@@ -147,20 +260,25 @@ async function main() {
   }
 
   // --- Step 3: Start container if not running ---
-  const containerRunning = run(
-    `docker ps --filter "name=^${CONTAINER_NAME}$" --format "{{.Names}}"`
-  );
+  const containerRunning = await run([
+    'docker', 'ps',
+    '--filter', `name=^${CONTAINER_NAME}$`,
+    '--format', '{{.Names}}'
+  ]);
 
   if (containerRunning === CONTAINER_NAME) {
     console.log(`  ${green('✓')} Toolkit container running (${bold(CONTAINER_NAME)})`);
   } else {
-    const containerExists = run(
-      `docker ps -a --filter "name=^${CONTAINER_NAME}$" --format "{{.Names}}"`
-    );
+    const containerExists = await run([
+      'docker', 'ps', '-a',
+      '--filter', `name=^${CONTAINER_NAME}$`,
+      '--format', '{{.Names}}'
+    ]);
 
     if (containerExists === CONTAINER_NAME) {
       process.stdout.write(`  ${yellow('→')} Starting toolkit container...`);
-      if (run(`docker start ${CONTAINER_NAME}`, { timeout: 30000 }) === null) {
+      const startResult = await run(['docker', 'start', CONTAINER_NAME], { timeout: 30000 });
+      if (startResult === null) {
         console.log('');
         fail(`Failed to start container.
 
@@ -169,16 +287,28 @@ async function main() {
       }
       console.log(` ${green('done')}`);
     } else {
-      const networkFlag = isLinux ? '--network=host' : '';
-
       process.stdout.write(`  ${yellow('→')} Creating toolkit container (${CONTAINER_NAME})...`);
-      const runCmd = `docker run -d --name ${CONTAINER_NAME} ${networkFlag} ${IMAGE_NAME}`.replace(/\s+/g, ' ');
-      if (run(runCmd, { timeout: 30000 }) === null) {
+
+      // Build docker run command with array arguments for security
+      const dockerRunArgs = [
+        'docker', 'run', '-d',
+        '--name', CONTAINER_NAME
+      ];
+
+      // Add network flag for Linux (host networking)
+      if (isLinux) {
+        dockerRunArgs.push('--network=host');
+      }
+
+      dockerRunArgs.push(IMAGE_NAME);
+
+      const runResult = await run(dockerRunArgs, { timeout: 30000 });
+      if (runResult === null) {
         console.log('');
         fail(`Failed to create container.
 
   Try manually:
-    ${cyan(runCmd)}`);
+    ${cyan(`docker run -d --name ${CONTAINER_NAME} ${isLinux ? '--network=host ' : ''}${IMAGE_NAME}`)}`);
       }
       console.log(` ${green('done')}`);
     }

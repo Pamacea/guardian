@@ -1,0 +1,42 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+LICENSE
+CHANGELOG.md
+
+# IDE & Editors
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules
+package-lock.json
+
+# Testing
+*.test.js
+*.test.ts
+__tests__
+coverage
+
+# Misc
+.env
+.env.*
+*.log
+
+# Project specific
+bin/
+prompt/

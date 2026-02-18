@@ -1,0 +1,54 @@
+name: Security Issue
+description: Report a security vulnerability
+title: "[Security] "
+labels: ["security", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Security Policy
+
+        **Do NOT disclose security vulnerabilities publicly.**
+
+        If you discover a security vulnerability, please send an email to the maintainer privately at [security contact].
+
+        This helps us fix the issue before it's exposed to the public.
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      description: Please confirm the following
+      options:
+        - label: I have NOT disclosed this vulnerability publicly
+          required: true
+        - label: I am willing to provide additional details privately
+          required: true
+        - label: This is a valid security vulnerability (not just a bug)
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Vulnerability Description
+      description: Please describe the vulnerability
+      placeholder: e.g., SQL injection in the SQL map integration
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What is the impact of this vulnerability?
+      placeholder: e.g., Could allow remote code execution
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can this vulnerability be reproduced?
+      placeholder: |
+        1. Run 'guardian scan http://example.com'
+        2. Enter malicious input: '; DROP TABLE--'
+        3. Observe error

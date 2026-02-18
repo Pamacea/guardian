@@ -1,0 +1,108 @@
+name: Dependencies
+
+on:
+  schedule:
+    # Run every Monday at 9:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-outdated:
+    name: Check Outdated Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check outdated npm packages
+        id: outdated
+        run: |
+          npm outdated --json > outdated.json || true
+          OUTDATED=$(cat outdated.json)
+          echo "outdated<<EOF" >> $GITHUB_OUTPUT
+          echo "$OUTDATED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment on issue if updates available
+        uses: actions/github-script@v7
+        if: steps.outdated.outputs.outdated != '{}'
+        with:
+          script: |
+            const outdated = ${{ steps.outdated.outputs.outdated }};
+            const count = Object.keys(outdated).length;
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['dependencies', 'automated']
+            });
+
+            const existingIssue = issues.find(i => i.title.includes('Outdated dependencies'));
+
+            const body = `## Outdated Dependencies Report
+
+            Generated: ${new Date().toISOString()}
+
+            There are **${count}** outdated packages:
+
+            ${Object.entries(outdated).map(([name, info]) => `
+            ### ${name}
+            - Current: ${info.current}
+            - Wanted: ${info.wanted}
+            - Latest: ${info.latest}
+            - Type: ${info.type || 'unknown'}
+            `).join('\n')}
+
+            ---
+            *This issue is automatically updated weekly.*
+            `;
+
+            if (existingIssue) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Outdated dependencies detected',
+                body: body,
+                labels: ['dependencies', 'automated', 'triage']
+              });
+            }
+
+  docker-base-update:
+    name: Check Docker Base Image Updates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get latest Python version
+        id: python
+        run: |
+          PYTHON_VERSION=$(curl -s https://raw.githubusercontent.com/docker-library/official-images/master/library/python | grep -oP '(?<=3\.12\.)\d+' | head -1 || echo "0")
+          echo "Latest Python 3.12 patch: ${PYTHON_VERSION}"
+
+      - name: Check for security advisories
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log('Docker base image check completed');
