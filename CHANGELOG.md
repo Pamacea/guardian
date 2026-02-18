@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.1.0] - 2025-02-18
+## [0.5.0] - 2025-02-18
 
 ### Security
 
@@ -20,9 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Complete testing infrastructure with Vitest
+  - **88 tests** with **97.69% code coverage**
   - Unit tests for CLI, validation, Docker wrapper
   - Security-specific tests (command injection, path traversal)
-  - 80% coverage threshold
 - CI/CD pipeline with GitHub Actions
   - Lint, test, and typecheck jobs
   - Docker build with multi-arch support
@@ -61,32 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Better error messages with structured error types
 - Improved logging with color-coded output
 
-## [1.0.1-alpha] - 2025-02-09
-
-### Changed
-
-- Updated README with simplified container naming
-- Standardized container references globally
-
-### Added
-
-- MIT License
-
-### Fixed
-
-- Static container name `guardian-tools` used consistently across all operations
-
-### Documentation
-
-- Improved README with clear quick start guide
-- Added production mode usage examples
-- Comprehensive troubleshooting section
-- Included tools list with categories
-- Added safety warnings and best practices
-
-[1.0.1-alpha]: https://github.com/Pamacea/guardian/releases/tag/v1.0.1-alpha
-
-## [1.0.0] - 2025-02-09
+## [1.0.0-alpha] - 2025-02-09
 
 ### Added
 
@@ -122,4 +97,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Inspired by nicefox-secu and AIDA projects
 
-[1.0.0]: https://github.com/Pamacea/guardian/releases/tag/v1.0.0
+[0.5.0]: https://github.com/Pamacea/guardian/releases/tag/v0.5.0
+[1.0.0-alpha]: https://github.com/Pamacea/guardian/releases/tag/v1.0.0-alpha
