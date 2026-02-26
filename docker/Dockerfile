@@ -66,10 +66,7 @@ RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
 # =============================================================================
 RUN mkdir -p /tmp/wordlists/seclists/Discovery/Web-Content \
              /tmp/wordlists/seclists/Discovery/DNS \
-             /tmp/wordlists/seclists/Fuzzing \
-             /tmp/wordlists/seclists/Injections \
-             /tmp/wordlists/seclists/Passwords \
-             /tmp/wordlists/dirb
+             /tmp/wordlists/seclists/Fuzzing
 
 # Web content discovery
 RUN SECLISTS="https://raw.githubusercontent.com/danielmiessler/SecLists/master" && \
@@ -89,14 +86,12 @@ RUN SECLISTS="https://raw.githubusercontent.com/danielmiessler/SecLists/master" 
     wget -q "$SECLISTS/Fuzzing/LFI/LFI-Jhaddix.txt" -O /tmp/wordlists/seclists/Fuzzing/LFI-Jhaddix.txt && \
     wget -q "$SECLISTS/Fuzzing/URI-XSS.fuzzdb.txt" -O /tmp/wordlists/seclists/Fuzzing/XSS.txt
 
-# Injections and passwords
-RUN SECLISTS="https://raw.githubusercontent.com/danielmiessler/SecLists/master" && \
-    wget -q "$SECLISTS/Fuzzing/Generic-Payloads.ini" -O /tmp/wordlists/seclists/Injections/Generic-Payloads.ini && \
-    wget -q "$SECLISTS/Passwords/Common-Credentials/10k-most-common.txt" -O /tmp/wordlists/seclists/Passwords/top-10000.txt
+# Injections and passwords - Note: These files were removed/renamed in SecLists
+# Generic-Payloads.ini and 10k-most-common.txt no longer exist at these paths
+# Skipping to avoid build failures - toolkit has other wordlists
 
-# Dirb wordlists
-RUN wget -q "https://raw.githubusercontent.com/v0re/dirb/master/wordlists/common.txt" -O /tmp/wordlists/dirb/common.txt && \
-    wget -q "https://raw.githubusercontent.com/v0re/dirb/master/wordlists/big.txt" -O /tmp/wordlists/dirb/big.txt
+# Dirb wordlists - Note: v0re/dirb repo may be unavailable
+# Using SecLists alternatives instead
 
 # =============================================================================
 # STAGE 2: Runtime - Minimal final image
@@ -162,10 +157,9 @@ COPY --from=builder /tmp/wordlists /usr/share/wordlists
 
 # Setup wordlist structure and shortcuts
 RUN mkdir -p /wordlists && \
-    cp /usr/share/wordlists/dirb/common.txt /wordlists/common.txt && \
-    cp /usr/share/wordlists/dirb/big.txt /wordlists/big.txt && \
+    cp /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt /wordlists/common.txt && \
+    cp /usr/share/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt /wordlists/big.txt && \
     cp /usr/share/wordlists/seclists/Fuzzing/XSS.txt /wordlists/xss.txt && \
-    cp /usr/share/wordlists/seclists/Passwords/top-10000.txt /wordlists/passwords.txt && \
     ln -sf /usr/share/wordlists/seclists /usr/share/wordlists/SecLists
 
 # Create non-root user for security

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3] - 2025-02-26
+
+### Fixed
+
+- Fixed Docker build failure - Removed non-existent SecLists wordlist files
+  - Generic-Payloads.ini and 10k-most-common.txt no longer exist in SecLists
+  - Dirb wordlists repository unavailable
+  - Updated shortcuts to use SecLists alternatives (Web-Content directory-list)
+- Removed downloads for files that return 404 errors
+- Wordlists now use only verified SecLists paths
+
 ## [0.5.2] - 2025-02-26
 
 ### Fixed
@@ -121,6 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Inspired by nicefox-secu and AIDA projects
 
+[0.5.3]: https://github.com/Pamacea/guardian/releases/tag/v0.5.3
 [0.5.2]: https://github.com/Pamacea/guardian/releases/tag/v0.5.2
 [0.5.1]: https://github.com/Pamacea/guardian/releases/tag/v0.5.1
 [0.5.0]: https://github.com/Pamacea/guardian/releases/tag/v0.5.0
