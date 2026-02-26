@@ -115,10 +115,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && apt-get clean
 
 # Install Python packages (cleanup pip cache)
-# Note: arjun==0.2.2 doesn't exist (versions start at 2.1.0), removed to avoid build failures
+# Note: arjun 0.2.x doesn't exist (available versions start at 2.1.0)
 RUN pip install --no-cache-dir \
     sqlmap==1.8.5 \
-    arjun==0.2.1 \
     httpie==3.2.2 \
     commix==4.1 \
     paramiko==3.4.1 \
