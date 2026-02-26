@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2025-02-26
+
+### Fixed
+
+- Fixed Docker build failure - testssl.sh tag v3.1 does not exist
+  - Removed branch specification to use default branch (latest)
+  - This resolves "Remote branch v3.1 not found in upstream origin" error
+
 ## [0.5.1] - 2025-02-26
 
 ### Fixed
@@ -113,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Inspired by nicefox-secu and AIDA projects
 
+[0.5.2]: https://github.com/Pamacea/guardian/releases/tag/v0.5.2
 [0.5.1]: https://github.com/Pamacea/guardian/releases/tag/v0.5.1
 [0.5.0]: https://github.com/Pamacea/guardian/releases/tag/v0.5.0
 [1.0.0-alpha]: https://github.com/Pamacea/guardian/releases/tag/v1.0.0-alpha

@@ -1,6 +1,6 @@
 {
   "name": "@oalacea/guardian",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "AI-powered security review plugin for pentesting web applications",
   "bin": {
     "guardian": "./bin/cli.js"

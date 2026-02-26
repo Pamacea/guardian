@@ -40,7 +40,7 @@ RUN --mount=type=cache,target=/tmp/git-cache \
     git clone --depth 1 --branch v0.5.5 https://github.com/urbanadventurer/WhatWeb.git /opt/tools/whatweb
 
 RUN --mount=type=cache,target=/tmp/git-cache \
-    git clone --depth 1 --branch v3.1 https://github.com/drwetter/testssl.sh.git /opt/tools/testssl
+    git clone --depth 1 https://github.com/drwetter/testssl.sh.git /opt/tools/testssl
 
 RUN --mount=type=cache,target=/tmp/git-cache \
     git clone --depth 1 https://github.com/ticarpi/jwt_tool.git /opt/tools/jwt_tool
