@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.6] - 2026-02-26
+
+### Fixed
+
+- Fixed Docker build failure - commix package not available on PyPI
+  - Changed to install from GitHub: `git+https://github.com/commixproject/commix.git@v4.1`
+  - commix is not published on PyPI, must be installed from source
+  - Resolves "No matching distribution found for commix==4.1" error
+
 ## [0.5.5] - 2025-02-26
 
 ### Fixed
@@ -150,6 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Inspired by nicefox-secu and AIDA projects
 
+[0.5.6]: https://github.com/Pamacea/guardian/releases/tag/v0.5.6
 [0.5.5]: https://github.com/Pamacea/guardian/releases/tag/v0.5.5
 [0.5.4]: https://github.com/Pamacea/guardian/releases/tag/v0.5.4
 [0.5.3]: https://github.com/Pamacea/guardian/releases/tag/v0.5.3

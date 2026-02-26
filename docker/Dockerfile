@@ -116,10 +116,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 # Install Python packages (cleanup pip cache)
 # Note: arjun 0.2.x doesn't exist (available versions start at 2.1.0)
+# Note: commix is not on PyPI, install from GitHub
 RUN pip install --no-cache-dir \
     sqlmap==1.8.5 \
     httpie==3.2.2 \
-    commix==4.1 \
+    git+https://github.com/commixproject/commix.git@v4.1 \
     paramiko==3.4.1 \
     && rm -rf /root/.cache/pip
 
