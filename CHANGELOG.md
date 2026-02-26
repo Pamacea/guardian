@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4] - 2025-02-26
+
+### Fixed
+
+- Fixed Docker build failure - Python package arjun==0.2.2 doesn't exist
+  - Available versions start at 2.1.0 (major version jump)
+  - Removed arjun from dependencies to avoid build failures
+  - Toolkit has many other parameter discovery tools (ffuf, etc.)
+
 ## [0.5.3] - 2025-02-26
 
 ### Fixed
@@ -132,6 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Inspired by nicefox-secu and AIDA projects
 
+[0.5.4]: https://github.com/Pamacea/guardian/releases/tag/v0.5.4
 [0.5.3]: https://github.com/Pamacea/guardian/releases/tag/v0.5.3
 [0.5.2]: https://github.com/Pamacea/guardian/releases/tag/v0.5.2
 [0.5.1]: https://github.com/Pamacea/guardian/releases/tag/v0.5.1
