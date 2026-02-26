@@ -37,16 +37,13 @@ RUN --mount=type=cache,target=/tmp/git-cache \
     git clone --depth 1 --branch 2.5.0 https://github.com/sullo/nikto.git /opt/tools/nikto
 
 RUN --mount=type=cache,target=/tmp/git-cache \
-    git clone --depth 1 https://github.com/urbanadventurer/WhatWeb.git /opt/tools/whatweb && \
-    cd /opt/tools/whatweb && git checkout 7b977bb8eceed639159eb72e87bc9168b5f92e0
+    git clone --depth 1 --branch v0.5.5 https://github.com/urbanadventurer/WhatWeb.git /opt/tools/whatweb
 
 RUN --mount=type=cache,target=/tmp/git-cache \
-    git clone --depth 1 https://github.com/drwetter/testssl.sh.git /opt/tools/testssl && \
-    cd /opt/tools/testssl && git checkout v3.1
+    git clone --depth 1 --branch v3.1 https://github.com/drwetter/testssl.sh.git /opt/tools/testssl
 
 RUN --mount=type=cache,target=/tmp/git-cache \
-    git clone --depth 1 https://github.com/ticarpi/jwt_tool.git /opt/tools/jwt_tool && \
-    cd /opt/tools/jwt_tool && git checkout b6bc124d8f4e0f08b0b6d1094111e714e09054a
+    git clone --depth 1 https://github.com/ticarpi/jwt_tool.git /opt/tools/jwt_tool
 
 # =============================================================================
 # Go binaries - downloaded in parallel with cleanup

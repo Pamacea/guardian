@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2025-02-26
+
+### Fixed
+
+- Fixed Docker build failure when cloning security tools
+  - Changed WhatWeb to use `--branch v0.5.5` tag instead of commit hash
+  - Changed testssl.sh to use `--branch v3.1` tag instead of checkout
+  - Removed commit hash checkout for jwt_tool (using latest)
+- Resolved "pathspec did not match" error with shallow clones
+
+### Technical Details
+
+- When using `git clone --depth 1`, only the latest commit is available
+- Checking out specific commit hashes fails in shallow clones
+- Solution: Use `--branch <tag>` directly in clone command
+
 ## [0.5.0] - 2025-02-18
 
 ### Security
@@ -97,5 +113,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Inspired by nicefox-secu and AIDA projects
 
+[0.5.1]: https://github.com/Pamacea/guardian/releases/tag/v0.5.1
 [0.5.0]: https://github.com/Pamacea/guardian/releases/tag/v0.5.0
 [1.0.0-alpha]: https://github.com/Pamacea/guardian/releases/tag/v1.0.0-alpha
