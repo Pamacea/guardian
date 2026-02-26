@@ -45,6 +45,9 @@ RUN --mount=type=cache,target=/tmp/git-cache \
 RUN --mount=type=cache,target=/tmp/git-cache \
     git clone --depth 1 https://github.com/ticarpi/jwt_tool.git /opt/tools/jwt_tool
 
+RUN --mount=type=cache,target=/tmp/git-cache \
+    git clone --depth 1 --branch v4.1 https://github.com/commixproject/commix.git /opt/tools/commix
+
 # =============================================================================
 # Go binaries - downloaded in parallel with cleanup
 # =============================================================================
@@ -116,11 +119,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 # Install Python packages (cleanup pip cache)
 # Note: arjun 0.2.x doesn't exist (available versions start at 2.1.0)
-# Note: commix is not on PyPI, install from GitHub
+# Note: commix is not on PyPI, cloned from GitHub in builder stage
 RUN pip install --no-cache-dir \
     sqlmap==1.8.5 \
     httpie==3.2.2 \
-    git+https://github.com/commixproject/commix.git@v4.1 \
     paramiko==3.4.1 \
     && rm -rf /root/.cache/pip
 
@@ -129,6 +131,7 @@ COPY --from=builder /opt/tools/nikto /opt/nikto
 COPY --from=builder /opt/tools/whatweb /opt/whatweb
 COPY --from=builder /opt/tools/testssl /opt/testssl
 COPY --from=builder /opt/tools/jwt_tool /opt/jwt_tool
+COPY --from=builder /opt/tools/commix /opt/commix
 
 # Install jwt_tool Python requirements
 RUN pip install --no-cache-dir -r /opt/jwt_tool/requirements.txt && rm -rf /root/.cache/pip
@@ -151,7 +154,8 @@ RUN chmod +x /usr/local/bin/ffuf /usr/local/bin/nuclei /usr/local/bin/subfinder 
 RUN ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto && \
     ln -s /opt/whatweb/whatweb /usr/local/bin/whatweb && \
     ln -s /opt/testssl/testssl.sh /usr/local/bin/testssl && \
-    ln -s /opt/jwt_tool/jwt_tool.py /usr/local/bin/jwt_tool
+    ln -s /opt/jwt_tool/jwt_tool.py /usr/local/bin/jwt_tool && \
+    ln -s /opt/commix/commix.py /usr/local/bin/commix
 
 # Copy wordlists from builder
 COPY --from=builder /tmp/wordlists /usr/share/wordlists

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.7] - 2026-02-26
+
+### Fixed
+
+- Fixed Docker build failure - commix requires git in runtime stage
+  - Clone commix in builder stage (v4.1 tag) and copy to runtime
+  - Create symlink at /usr/local/bin/commix
+  - Resolves "Cannot find command 'git'" error in runtime stage
+
 ## [0.5.6] - 2026-02-26
 
 ### Fixed
@@ -159,6 +168,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Inspired by nicefox-secu and AIDA projects
 
+[0.5.7]: https://github.com/Pamacea/guardian/releases/tag/v0.5.7
 [0.5.6]: https://github.com/Pamacea/guardian/releases/tag/v0.5.6
 [0.5.5]: https://github.com/Pamacea/guardian/releases/tag/v0.5.5
 [0.5.4]: https://github.com/Pamacea/guardian/releases/tag/v0.5.4
