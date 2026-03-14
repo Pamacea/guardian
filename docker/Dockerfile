@@ -76,11 +76,11 @@ RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
 
 # =============================================================================
 # GraphQL Tools (for NestJS)
-# NOTE: graphqlmap temporarily disabled due to git auth issues in Docker
-# The repo may have access restrictions or require special authentication
+# NOTE: graphqlmap (doyensec/graphqlmap) was deleted from GitHub
+# Replaced with GapQL - a CLI GraphQL fuzzing tool
 # =============================================================================
-# RUN git config --global credential.helper "" && \
-#     GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/doyensec/graphqlmap.git /opt/tools/graphqlmap
+RUN --mount=type=cache,target=/tmp/git-cache \
+    git clone --depth 1 https://github.com/0xInfection/gapql.git /opt/tools/gapql
 
 # =============================================================================
 # Wordlists - split into cacheable layers by category
@@ -177,6 +177,9 @@ COPY --from=builder /opt/tools/commix /opt/commix
 # Install jwt_tool Python requirements
 RUN pip install --no-cache-dir -r /opt/jwt_tool/requirements.txt && rm -rf /root/.cache/pip
 
+# Install GapQL Python requirements
+RUN pip install --no-cache-dir -r /opt/gapql/requirements.txt && rm -rf /root/.cache/pip
+
 # Install whatweb gem dependency
 RUN gem install --no-document addressable
 
@@ -188,8 +191,8 @@ COPY --from=builder /tmp/downloads/dalfox /usr/local/bin/dalfox
 COPY --from=builder /tmp/downloads/httpx /usr/local/bin/httpx
 COPY --from=builder /tmp/downloads/vegeta /usr/local/bin/vegeta
 
-# Copy graphqlmap
-# COPY --from=builder /opt/tools/graphqlmap /opt/graphqlmap
+# Copy GapQL (GraphQL fuzzer)
+COPY --from=builder /opt/tools/gapql /opt/gapql
 
 # Make binaries executable
 RUN chmod +x /usr/local/bin/ffuf /usr/local/bin/nuclei /usr/local/bin/subfinder \
@@ -201,7 +204,8 @@ RUN ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto && \
     ln -s /opt/whatweb/whatweb /usr/local/bin/whatweb && \
     ln -s /opt/testssl/testssl.sh /usr/local/bin/testssl && \
     ln -s /opt/jwt_tool/jwt_tool.py /usr/local/bin/jwt_tool && \
-    ln -s /opt/commix/commix.py /usr/local/bin/commix
+    ln -s /opt/commix/commix.py /usr/local/bin/commix && \
+    ln -s /opt/gapql/gapql.py /usr/local/bin/gapql
     # ln -s /opt/graphqlmap/graphqlmap.py /usr/local/bin/graphqlmap
 
 # Copy wordlists from builder
