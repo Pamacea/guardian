@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.5] - 2025-03-14
+
+### Fixed
+
+- **Docker Image Build**: Fixed graphqlmap git clone authentication error
+  - Removed git cache mount for graphqlmap clone (causing auth prompts)
+  - graphqlmap now clones correctly without authentication
+
 ## [0.6.4] - 2025-03-14
 
 ### Fixed
