@@ -1,0 +1,44 @@
+id: nestjs-missing-security-headers
+info:
+  name: NestJS Missing Security Headers
+  author: Guardian
+  severity: low
+  description: Detects missing security headers in NestJS applications
+  tags: nestjs,headers,security,misconfiguration
+
+requests:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers:
+      - type: regex
+        negative: true
+        regex:
+          - "strict-transport-security:"
+        part: header
+
+      - type: regex
+        negative: true
+        regex:
+          - "x-content-type-options:"
+        part: header
+
+      - type: regex
+        negative: true
+        regex:
+          - "x-frame-options:"
+        part: header
+
+      - type: regex
+        negative: true
+        regex:
+          - "content-security-policy:"
+        part: header
+
+      - type: regex
+        negative: true
+        regex:
+          - "referrer-policy:"
+        part: header

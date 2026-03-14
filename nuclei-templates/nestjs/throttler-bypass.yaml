@@ -1,0 +1,55 @@
+id: nestjs-throttler-bypass
+info:
+  name: NestJS Throttler Bypass Detection
+  author: Guardian
+  severity: medium
+  description: Detects rate limiting bypass in NestJS applications
+  tags: nestjs,rate-limit,throttler,dos
+
+requests:
+  - raw:
+      - |
+        GET /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/auth/login HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        negative: true
+        words:
+          - "429"
+          - "Too Many Requests"
+        part: header
+
+      - type: status
+        status:
+          - 200
+          - 401
+          - 403

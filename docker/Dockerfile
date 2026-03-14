@@ -65,6 +65,21 @@ RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
     rm -rf /tmp/*.tar.gz /tmp/*.zip /tmp/nuclei-extract /tmp/subfinder-extract /tmp/httpx-extract
 
 # =============================================================================
+# DDoS & Stress Testing Tools
+# =============================================================================
+RUN wget -q "https://github.com/tsenart/vegeta/releases/download/v12.11.1/vegeta_12.11.1_linux_${ARCH}.tar.gz" -O /tmp/vegeta.tar.gz && \
+    wget -q "https://github.com/rakyll/hey/releases/download/v0.1.4/hey_linux_${ARCH}" -O /tmp/hey && \
+    tar -xzf /tmp/vegeta.tar.gz -C /tmp/downloads vegeta && \
+    mv /tmp/hey /tmp/downloads/hey && \
+    rm -rf /tmp/vegeta.tar.gz /tmp/hey
+
+# =============================================================================
+# GraphQL Tools (for NestJS)
+# =============================================================================
+RUN --mount=type=cache,target=/tmp/git-cache \
+    git clone --depth 1 https://github.com/doyensec/graphqlmap.git /opt/tools/graphqlmap
+
+# =============================================================================
 # Wordlists - split into cacheable layers by category
 # =============================================================================
 RUN mkdir -p /tmp/wordlists/seclists/Discovery/Web-Content \
@@ -113,6 +128,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     ruby \
     bsdmainutils \
     dnsutils \
+    apache2-utils \
+    curl \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get autoremove -y \
     && apt-get clean
@@ -125,6 +142,26 @@ RUN pip install --no-cache-dir \
     httpie==3.2.2 \
     paramiko==3.4.1 \
     && rm -rf /root/.cache/pip
+
+# =============================================================================
+# Rust Tools (for Rust application security testing)
+# =============================================================================
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gcc \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Rust toolchain
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+
+# Install Rust security tools
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN cargo install cargo-audit --version 0.21.0 && \
+    cargo install cargo-deny --version 0.14.0 && \
+    rm -rf /root/.cargo/registry/src /root/.cargo/git
 
 # Copy tools from builder stage
 COPY --from=builder /opt/tools/nikto /opt/nikto
@@ -145,17 +182,24 @@ COPY --from=builder /tmp/downloads/nuclei /usr/local/bin/nuclei
 COPY --from=builder /tmp/downloads/subfinder /usr/local/bin/subfinder
 COPY --from=builder /tmp/downloads/dalfox /usr/local/bin/dalfox
 COPY --from=builder /tmp/downloads/httpx /usr/local/bin/httpx
+COPY --from=builder /tmp/downloads/vegeta /usr/local/bin/vegeta
+COPY --from=builder /tmp/downloads/hey /usr/local/bin/hey
+
+# Copy graphqlmap
+COPY --from=builder /opt/tools/graphqlmap /opt/graphqlmap
 
 # Make binaries executable
 RUN chmod +x /usr/local/bin/ffuf /usr/local/bin/nuclei /usr/local/bin/subfinder \
-    /usr/local/bin/dalfox /usr/local/bin/httpx /opt/jwt_tool/jwt_tool.py
+    /usr/local/bin/dalfox /usr/local/bin/httpx /usr/local/bin/vegeta /usr/local/bin/hey \
+    /opt/jwt_tool/jwt_tool.py
 
 # Create symlinks for tools
 RUN ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto && \
     ln -s /opt/whatweb/whatweb /usr/local/bin/whatweb && \
     ln -s /opt/testssl/testssl.sh /usr/local/bin/testssl && \
     ln -s /opt/jwt_tool/jwt_tool.py /usr/local/bin/jwt_tool && \
-    ln -s /opt/commix/commix.py /usr/local/bin/commix
+    ln -s /opt/commix/commix.py /usr/local/bin/commix && \
+    ln -s /opt/graphqlmap/graphqlmap.py /usr/local/bin/graphqlmap
 
 # Copy wordlists from builder
 COPY --from=builder /tmp/wordlists /usr/share/wordlists

@@ -1,0 +1,45 @@
+id: nestjs-websocket-auth-bypass
+info:
+  name: NestJS WebSocket Authentication Bypass
+  author: Guardian
+  severity: high
+  description: Detects WebSocket endpoints accessible without authentication
+  tags: nestjs,websocket,auth,bypass
+
+requests:
+  - raw:
+      - |
+        GET /ws HTTP/1.1
+        Host: {{Hostname}}
+        Connection: Upgrade
+        Upgrade: websocket
+        Sec-WebSocket-Version: 13
+        Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+
+      - |
+        GET /socket.io/ HTTP/1.1
+        Host: {{Hostname}}
+        Connection: Upgrade
+        Upgrade: websocket
+        Sec-WebSocket-Version: 13
+        Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+
+      - |
+        GET /gateway HTTP/1.1
+        Host: {{Hostname}}
+        Connection: Upgrade
+        Upgrade: websocket
+        Sec-WebSocket-Version: 13
+        Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "101 Switching Protocols"
+          - "Sec-WebSocket-Accept"
+        part: header
+
+      - type: status
+        status:
+          - 101

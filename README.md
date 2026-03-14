@@ -8,6 +8,12 @@
 
 AI-powered security review plugin for pentesting web applications. Automated vulnerability scanning and remediation with zero configuration.
 
+**Features:**
+- Multi-framework support: NestJS, Rust, Vite/VoidZero, Express, Fastify, Django, Flask, FastAPI, Go, Spring Boot
+- DDoS resistance testing: HTTP flood, Slowloris, connection exhaustion
+- Stress testing: Memory leaks, response time benchmarks, CPU monitoring
+- OWASP Top 10 2021: 100% coverage
+
 ## Quick Start
 
 ### Installation
@@ -17,7 +23,7 @@ AI-powered security review plugin for pentesting web applications. Automated vul
 npx @oalacea/guardian
 ```
 
-First run installs the security toolkit (~550-650 MB Docker image, takes 2-3 minutes).
+First run installs the security toolkit (~800 MB Docker image, takes 2-3 minutes).
 
 ### Production Mode
 
@@ -64,18 +70,32 @@ The Docker toolkit includes:
 | JWT | jwt_tool |
 | Brute Force | hydra |
 | SSL/TLS | testssl.sh |
-| Wordlists | SecLists (Web-Content, DNS, Fuzzing, SQLi, Passwords) |
+| DDoS/Stress | vegeta, hey, ab (Apache Bench), slowhttptest |
+| GraphQL | graphqlmap |
+| Rust Security | cargo-audit, cargo-deny |
+| Wordlists | SecLists (Web-Content, DNS, Fuzzing, SQLi, Passwords, DDoS) |
 
 ## What It Tests
 
+### Framework-Specific
+- **NestJS**: Guard bypass, pipe injection, GraphQL introspection, WebSocket auth, throttler bypass
+- **Rust**: Unsafe blocks, integer overflow, Serde RCE, actix/axum vulnerabilities, cargo-audit
+- **Vite/VoidZero**: HMR injection, source map leaks, dependency pre-bundling, env var leakage
+- **Node.js**: Prototype pollution, ReDoS, dependency confusion
+
+### General Vulnerabilities
 - **Injection**: SQLi, NoSQL, SSTI, XXE, LDAP, Command injection
 - **Cross-Site**: XSS (reflected, stored, DOM), CSRF, CORS misconfig
 - **Server-Side**: SSRF, deserialization, path traversal, file upload
 - **Auth**: Authentication bypass, privilege escalation, IDOR, JWT manipulation
 - **Logic**: Mass assignment, business logic flaws, race conditions
 - **Infrastructure**: Subdomain takeover, missing headers, info disclosure
-- **DoS**: ReDoS, GraphQL deep nesting
-- **GraphQL**: Introspection, batching, nested query DoS
+- **DoS**: ReDoS, GraphQL deep nesting, HTTP flood, Slowloris, connection exhaustion
+- **DDoS**: Rate limit bypass, connection pool exhaustion, slow attacks
+- **Stress**: Memory leaks, response time benchmarks, CPU usage, error rates
+
+### OWASP Top 10 2021
+- 100% coverage including insecure design, vulnerable components, and logging failures
 
 ## Safety
 

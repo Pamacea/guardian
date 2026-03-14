@@ -1,0 +1,48 @@
+id: rust-panic-dos
+info:
+  name: Rust Panic DoS
+  author: Guardian
+  severity: high
+  description: Detects potential panic-based DoS vulnerabilities in Rust applications
+  tags: rust,dos,panic,denial-of-service
+
+requests:
+  - raw:
+      - |
+        POST /api/parse HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"data": [null, null, null, null, null]}
+      - |
+        GET /api/divide?by=0 HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        POST /api/unwrap HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"value": null}
+      - |
+        GET /api/recursive?depth=999999 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "panicked"
+          - "unwrap()"
+          - "expect("
+          - "stack overflow"
+        part: body
+
+      - type: regex
+        regex:
+          - "(panicked at|thread '.*' panicked|stack overflow)"
+        part: body
+
+      - type: status
+        status:
+          - 500
+          - 503

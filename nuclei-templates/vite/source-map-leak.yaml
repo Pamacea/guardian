@@ -1,0 +1,44 @@
+id: vite-source-map-leak
+info:
+  name: Vite Source Map Leak
+  author: Guardian
+  severity: medium
+  description: Detects exposed source maps in Vite builds
+  tags: vite,sourcemap,info-leak
+
+requests:
+  - raw:
+      - |
+        GET /assets/ HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /assets/index.js.map HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /dist/assets/index.js.map HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "version"
+          - "sources"
+          - "mappings"
+          - "names"
+        part: body
+
+      - type: status
+        status:
+          - 200
+
+      - type: regex
+        regex:
+          - "sourceMappingURL"
+        part: header
+
+    extractors:
+      - type: regex
+        regex:
+          - "\"sources\":\\s*\\[([^\\]]+)\\]"
+        part: body

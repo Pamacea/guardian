@@ -1,0 +1,40 @@
+id: slowloris-detection
+info:
+  name: Slowloris Attack Detection
+  author: Guardian
+  severity: high
+  description: Tests for Slowloris attack vulnerability by detecting slow header processing
+  tags: ddos,slowloris,http
+
+requests:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: {{randstr}}
+        Accept: */*
+
+        # Send partial headers slowly
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        X-Slow-Header-1: {{randstr}}
+        X-Slow-Header-2: {{randstr}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 201
+          - 408
+
+      - type: word
+        negative: true
+        words:
+          - "timeout"
+          - "connection"
+
+    attack: batteringram
+    threads: 5
+    timeout: 30

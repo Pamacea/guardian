@@ -1,0 +1,49 @@
+id: nestjs-guard-bypass
+info:
+  name: NestJS Guard Bypass
+  author: Guardian
+  severity: high
+  description: Detects NestJS routes accessible without authentication
+  tags: nestjs,auth,bypass
+
+requests:
+  - raw:
+      - |
+        GET /admin HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /admin/users HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/config HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/users HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /dashboard HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 301
+          - 302
+
+      - type: word
+        words:
+          - "[{"
+        part: body
+
+      - type: regex
+        regex:
+          - "(user|admin|config).*:"
+        part: body
+
+    extractors:
+      - type: regex
+        regex:
+          - "title>(.*?)</title>"
+        part: body

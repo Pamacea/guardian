@@ -1,0 +1,45 @@
+id: nestjs-cors-misconfiguration
+info:
+  name: NestJS CORS Misconfiguration
+  author: Guardian
+  severity: medium
+  description: Detects overly permissive CORS configuration in NestJS
+  tags: nestjs,cors,misconfiguration
+
+requests:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Origin: https://evil.com
+
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Origin: https://malicious-site.com
+
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Origin: null
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "access-control-allow-origin: *"
+          - "access-control-allow-origin: https://evil.com"
+          - "access-control-allow-origin: https://malicious-site.com"
+          - "access-control-allow-origin: null"
+        part: header
+        condition: or
+
+      - type: regex
+        regex:
+          - "access-control-allow-origin: evil\.com"
+          - "access-control-allow-origin: malicious"
+        part: header
+
+      - type: dsl
+        dsl:
+          - 'contains(header_all, "access-control-allow-credentials") && contains(header_all, "access-control-allow-origin: *")'

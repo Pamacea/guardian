@@ -1,0 +1,44 @@
+id: user-agent-rotation-bypass
+info:
+  name: User-Agent Rotation Rate Limit Bypass
+  author: Guardian
+  severity: medium
+  description: Tests if rate limiting can be bypassed by rotating User-Agents
+  tags: ddos,rate-limit,bypass,user-agent
+
+requests:
+  - raw:
+      - |
+        GET /api/limited HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: {{user_agent}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 201
+
+      - type: word
+        negative: true
+        words:
+          - "429"
+          - "rate limit"
+
+    attack: batteringram
+    threads: 10
+    timeout: 5
+
+    payloads:
+      user_agent:
+        - "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+        - "Mozilla/5.0 (X11; Linux x86_64)"
+        - "curl/7.68.0"
+        - "wget/1.20.3"
+        - "Python-urllib/3.8"
+        - "Go-http-client/1.1"
+        - "Java/11.0.6"
+        - "axios/0.19.2"
+        - "node-fetch/2.6.1"

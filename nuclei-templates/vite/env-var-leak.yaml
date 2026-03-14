@@ -1,0 +1,41 @@
+id: vite-env-var-leak
+info:
+  name: Vite Environment Variable Leak
+  author: Guardian
+  severity: medium
+  description: Detects leaked environment variables in Vite bundled JavaScript
+  tags: vite,env,info-leak,config
+
+requests:
+  - raw:
+      - |
+        GET /assets/ HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /dist/assets/ HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "import.meta.env."
+          - "process.env."
+        condition: or
+
+      - type: regex
+        regex:
+          - "(import\\.meta\\.env\\.(VITE_|SECRET|KEY|PASSWORD|TOKEN|API))"
+          - "(process\\.env\\.(SECRET|KEY|PASSWORD|TOKEN|API))"
+        part: body
+
+    extractors:
+      - type: regex
+        regex:
+          - "(?:import\\.meta\\.env|process\\.env)\\.([A-Z_]+(?:SECRET|KEY|PASSWORD|TOKEN|API|KEY))"
+        part: body

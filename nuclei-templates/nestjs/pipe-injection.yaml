@@ -1,0 +1,48 @@
+id: nestjs-pipe-injection
+info:
+  name: NestJS Pipe Injection
+  author: Guardian
+  severity: critical
+  description: Detects injection vulnerabilities in NestJS validation pipes
+  tags: nestjs,injection,pipe,sqli,nosql
+
+requests:
+  - raw:
+      - |
+        GET /api/search?q=' OR '1'='1 HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/search?q={"$ne":null} HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/search?q={{7*7}} HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/files?path=../../../etc/passwd HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/users?id=1' UNION SELECT NULL-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "root:"
+          - "xargs:"
+          - "MariaDB"
+          - "PostgreSQL"
+          - "MongoError"
+          - "CastError"
+        part: body
+
+      - type: regex
+        regex:
+          - "(error|syntax|unexpected).*['\"]"
+          - "\$\{.*\}"
+        part: body
+
+      - type: status
+        status:
+          - 500
+          - 200

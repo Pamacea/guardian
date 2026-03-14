@@ -26,7 +26,8 @@ const config = {
 
   PROJECT_MARKERS: [
     'package.json', 'requirements.txt', 'pyproject.toml', 'Pipfile',
-    'go.mod', 'pom.xml', 'build.gradle', 'Gemfile', 'composer.json', 'Cargo.toml'
+    'go.mod', 'pom.xml', 'build.gradle', 'Gemfile', 'composer.json', 'Cargo.toml',
+    'nest-cli.json', 'vite.config.js', 'vite.config.ts', '.nest-cli.json'
   ]
 };
 

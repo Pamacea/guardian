@@ -1,0 +1,53 @@
+id: vite-public-files-exposure
+info:
+  name: Vite Sensitive Public Files Exposure
+  author: Guardian
+  severity: high
+  description: Detects sensitive files exposed in Vite public directory
+  tags: vite,lfi,info-leak
+
+requests:
+  - raw:
+      - |
+        GET /.env HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.env.local HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.env.production HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /config.json HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /secrets.json HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.git/config HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - "DB_HOST"
+          - "DB_PASSWORD"
+          - "API_KEY"
+          - "SECRET_KEY"
+          - "JWT_SECRET"
+          - "[core]"
+          - "[remote \""
+          - "\"private\""
+        condition: or
+
+      - type: regex
+        regex:
+          - "(AWS_|API_|SECRET_|JWT_|DATABASE_|DB_).*=.*"
+          - "\\[user\\]|\\[core\\]|\\[remote"
+        part: body
+
+      - type: status
+        status:
+          - 200

@@ -1,0 +1,34 @@
+id: vite-dev-server-detection
+info:
+  name: Vite Development Server Detection
+  author: Guardian
+  severity: info
+  description: Detects Vite development server running in production
+  tags: vite,dev-server,config
+
+requests:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: header
+        words:
+          - "x-powered-by: vite"
+          - "server: vite"
+        condition: or
+
+      - type: word
+        part: body
+        words:
+          - "You need to enable JavaScript to run this app."
+          - "/@vite/client"
+          - "__vite_hmr"
+        condition: or

@@ -1,0 +1,28 @@
+id: nestjs-graphql-introspection
+info:
+  name: NestJS GraphQL Introspection Enabled
+  author: Guardian
+  severity: medium
+  description: Detects GraphQL introspection enabled in NestJS applications
+  tags: nestjs,graphql,introspection
+
+requests:
+  - raw:
+      - |
+        POST /graphql HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"query":"{__schema{types{name fields{name type{name}}}}}"}
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "__schema"
+          - "types"
+        part: body
+
+      - type: status
+        status:
+          - 200

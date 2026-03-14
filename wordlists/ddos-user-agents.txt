@@ -1,0 +1,73 @@
+# DDoS User-Agent Wordlist
+# Common User-Agents used for DDoS attacks and load testing
+
+# Legitimate Load Testing Tools
+ApacheBench/2.3
+wrk/4.1.0
+hey/0.0.1
+vegeta/1.0
+siege/4.0
+jmeter/5.5
+gatling/3.9
+locust/2.15
+
+# Malicious/Attack Tools
+DDoS Attack Script/1.0
+LOIC/1.1
+HOIC/2.1
+SQLMap/1.6
+Nmap/7.9
+nikto/2.5
+masscan/1.3
+zmap/2.1
+
+# Bot and Crawler User-Agents (potential DDoS sources)
+Googlebot/2.1
+bingbot/2.0
+Slurp/3.0
+duckduckbot/1.1
+baiduspider/2.0
+yandexbot/3.0
+facebookexternalhit/1.1
+twitterbot/1.0
+LinkedInBot/1.0
+WhatsApp/2.0
+
+# Scripting Tools
+curl/7.8
+wget/1.20
+Python-urllib/3.9
+requests/2.2
+Go-http-client/1.1
+Java/1.8
+axios/0.2
+node-fetch/2.6
+Ruby/2.7
+PHP/8.0
+
+# Anonymous/Suspicious User-Agents
+Mozilla/5.0 (compatible; DDoS-Bot)
+Anonymous/1.0
+Bot/1.0
+Crawler/1.0
+Spider/1.0
+Scanner/1.0
+Tester/1.0
+Attacker/1.0
+
+# Empty or Null User-Agents (common in DDoS)
+(empty)
+-
+null
+none
+unknown
+
+# Mobile User-Agents (can be used in mobile DDoS)
+Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)
+Mozilla/5.0 (Linux; Android 10; SM-G973F)
+Mozilla/5.0 (iPad; CPU OS 14_0 like Mac OS X)
+
+# Gaming Consoles (sometimes used in reflection attacks)
+PlayStation 5
+Xbox One
+Nintendo Switch

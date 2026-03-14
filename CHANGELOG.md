@@ -7,6 +7,212 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-03-14
+
+### Added - NestJS Security Suite
+
+- Comprehensive NestJS framework detection
+  - `nest-cli.json`, `@nestjs/core`, decorator patterns
+- Guard bypass testing and detection
+  - Unauthenticated admin access detection
+  - Missing guard identification
+- Pipe injection scanning
+  - SQL injection via validation pipes
+  - NoSQL injection (MongoDB)
+  - Server-Side Template Injection (SSTI)
+  - Path traversal via pipes
+- GraphQL NestJS security
+  - Introspection disclosure detection
+  - Batch query DoS testing
+  - Deep nesting DoS detection
+- WebSocket authentication checks
+  - Unauthenticated connection detection
+  - Message validation verification
+- Throttler bypass detection
+  - Rate limit bypass via headers
+  - IP spoofing techniques
+- CORS and security headers validation
+  - CORS misconfiguration detection
+  - Missing security headers identification
+- Nuclei templates for NestJS vulnerabilities
+  - `nestjs-guard-bypass.yaml`
+  - `nestjs-pipe-injection.yaml`
+  - `nestjs-graphql-introspection.yaml`
+  - `nestjs-websocket-auth.yaml`
+
+### Added - Rust Security Toolkit
+
+- Rust project detection
+  - `Cargo.toml`, `src/main.rs`, `src/lib.rs`
+- Framework-specific detection
+  - actix-web, axum, rocket, warp support
+- Unsafe block analysis
+  - Detection and counting of unsafe blocks
+  - Location and context extraction
+- Integer overflow checking
+  - Wrapping arithmetic detection
+  - Unchecked conversion scanning
+- Serde deserialization RCE
+  - Unsafe deserialization detection
+  - Complex type scanning
+- Framework-specific vulnerabilities
+  - Actix-Web: path extraction, query injection
+  - Axum: extractor bypass, state leaks
+  - Rocket: form injection, guard bypass
+- cargo-audit integration
+  - RustSec advisory scanning
+  - Dependency vulnerability checks
+- cargo-deny integration
+  - License compliance checking
+  - Advisory linting
+- Nuclei templates for Rust vulnerabilities
+  - `rust-unsafe-deser.yaml`
+  - `rust-axum-path-injection.yaml`
+  - `rust-actix-query-injection.yaml`
+
+### Added - Vite/VoidZero Support
+
+- Vite project detection
+  - `vite.config.*`, `vite` in dependencies
+- VoidZero tools detection
+  - `nv` (node version manager)
+  - `vti` (Vite inspector)
+  - `robo` (task runner)
+- HMR injection testing
+  - Hot Module Replacement endpoint detection
+  - WebSocket HMR exposure checks
+- Source map leak detection
+  - Production build scanning for `.map` files
+  - Source content exposure verification
+- Dependency pre-bundling checks
+  - `node_modules/.vite` analysis
+  - Vulnerable dependency scanning
+- Environment variable leakage
+  - `import.meta.env` usage scanning
+  - Sensitive variable detection
+- Public files exposure
+  - `public/` directory scanning
+  - Sensitive file detection (.env, secrets)
+- VoidZero tools security
+  - Package manager integrity checks
+  - Lockfile duplication detection
+- Nuclei templates for Vite vulnerabilities
+  - `vite-source-map-leak.yaml`
+  - `vite-hmr-injection.yaml`
+
+### Added - DDoS Protection Testing
+
+- HTTP flood resistance testing
+  - High-rate request testing with vegeta
+  - Error rate metrics (target: < 5%)
+  - Response time under load
+- Slowloris attack testing
+  - Connection holding vulnerability detection
+  - Timeout configuration verification
+- Connection exhaustion testing
+  - Max concurrent connections testing
+  - Connection pool efficiency
+- Rate limit bypass detection
+  - X-Forwarded-For spoofing
+  - X-Real-IP spoofing
+  - User-Agent rotation
+  - Header-based bypass techniques
+- New tools added
+  - `vegeta` - HTTP load testing
+  - `hey` - HTTP load generator
+  - `ab` (Apache Bench) - benchmarking
+  - `slowhttptest` - slowloris testing
+- DDoS wordlists
+  - `wordlists/ddos-user-agents.txt`
+
+### Added - Stress Testing Framework
+
+- Memory leak detection
+  - Memory growth monitoring
+  - Peak memory tracking (target: < 80%)
+  - Leak identification patterns
+- Connection pool testing
+  - Concurrent connection limits
+  - Rejected connection metrics
+- Response time benchmarks
+  - P50, P95, P99 latency targets
+  - Target: P95 < 500ms
+- Error rate testing
+  - HTTP error rate under load (target: < 1%)
+  - 5xx response monitoring
+- CPU usage monitoring
+  - CPU utilization under load (target: < 90%)
+  - Load average tracking
+- Stress intensity levels
+  - Low, Medium, High configurations
+  - Configurable request rates and concurrency
+
+### Enhanced - OWASP Top 10 2021
+
+- A01: Broken Access Control - Enhanced RBAC testing
+- A02: Cryptographic Failures - Weak crypto detection added
+- A03: Injection - NoSQL, SSTI, GraphQL enhanced
+- A04: Insecure Design - Threat modeling prompts
+- A05: Security Misconfiguration - Config analysis
+- A06: Vulnerable Components - SCA integration (cargo-audit, npm audit)
+- A07: Authentication Failures - Session testing enhanced
+- A08: Data Integrity - Supply chain checks
+- A09: Logging Failures - Log injection testing
+- A10: SSRF - Bypass testing enhanced
+
+### Enhanced - Architecture
+
+- Modular detection system
+  - `bin/detection/` - Framework detection modules
+  - `bin/detection/nestjs.js` - NestJS detection
+  - `bin/detection/rust.js` - Rust detection
+  - `bin/detection/vite.js` - Vite detection
+  - `bin/detection/base.js` - Legacy framework detection
+  - `bin/detection/index.js` - Detection orchestrator
+- Modular scanner system
+  - `bin/scanners/` - Scanner modules
+  - `bin/scanners/nestjs.js` - NestJS security scanner
+  - `bin/scanners/rust.js` - Rust security scanner
+  - `bin/scanners/vite.js` - Vite security scanner
+  - `bin/scanners/ddos.js` - DDoS resistance scanner
+  - `bin/scanners/stress.js` - Stress testing scanner
+  - `bin/scanners/index.js` - Scanner orchestrator
+- Framework-specific prompts
+  - `bin/prompts/nestjs.md` - NestJS security prompts
+  - `bin/prompts/rust.md` - Rust security prompts
+  - `bin/prompts/vite.md` - Vite security prompts
+
+### Enhanced - Testing
+
+- 250+ tests (from 88)
+  - Unit tests for detection modules
+  - Integration tests for scanners
+  - Framework-specific security tests
+  - DDoS and stress test suites
+- Test coverage: > 95%
+  - Detection module coverage
+  - Scanner module coverage
+  - Integration test coverage
+
+### Enhanced - Documentation
+
+- `docs/ROADMAP.md` - Complete v0.6.0 roadmap
+- `docs/NESTJS.md` - NestJS security documentation
+- `docs/RUST.md` - Rust security documentation
+- `docs/VITE.md` - Vite/VoidZero documentation
+- `docs/DDOS.md` - DDoS/Stress testing documentation
+- Enhanced README with new features
+
+### Changed
+
+- Docker image size: ~800 MB (from ~650 MB)
+- Number of tools: 25+ (from 12)
+- Added apache2-utils to runtime
+- Added curl to runtime
+- Updated PROJECT_MARKERS in config.js
+- Package version bumped to 0.6.0
+- Keywords updated: nestjs, rust, vite, voidzero, ddos, stress-testing, owasp
+
 ## [0.5.7] - 2026-02-26
 
 ### Fixed

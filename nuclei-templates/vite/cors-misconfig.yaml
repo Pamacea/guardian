@@ -1,0 +1,34 @@
+id: vite-cors-misconfiguration
+info:
+  name: Vite CORS Misconfiguration
+  author: Guardian
+  severity: low
+  description: Detects overly permissive CORS configuration in Vite apps
+  tags: vite,cors,misconfig
+
+requests:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Origin: https://evil.com
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: header
+        words:
+          - "access-control-allow-origin: *"
+          - "access-control-allow-origin: https://evil.com"
+          - "access-control-allow-origin: null"
+        condition: or
+
+      - type: word
+        part: header
+        words:
+          - "access-control-allow-credentials: true"
+        negative: true

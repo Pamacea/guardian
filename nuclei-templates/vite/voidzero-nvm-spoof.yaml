@@ -1,0 +1,35 @@
+id: voidzero-nv-version-spoof
+info:
+  name: VoidZero NV Version Spoof Detection
+  author: Guardian
+  severity: info
+  description: Detects potential Node version spoofing using NV
+  tags: voidzero,nv,node-version,config
+
+requests:
+  - raw:
+      - |
+        GET /api/node-version HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /.node-version HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/config HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        part: body
+        words:
+          - '"nodeVersion"'
+          - '"nv"'
+          - "node_version"
+        condition: or
+
+      - type: regex
+        regex:
+          - '"node_version":\\s*"\\d+\\.\\d+\\.\\d+"'
+          - '"nv":\\s*\\{'
+        part: body

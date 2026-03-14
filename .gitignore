@@ -4,3 +4,8 @@ node_modules/
 coverage/
 .npm
 .env
+
+# Studio
+.smite/
+.ex-g-se/
+.claude/

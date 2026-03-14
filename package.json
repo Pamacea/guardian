@@ -1,7 +1,7 @@
 {
   "name": "@oalacea/guardian",
-  "version": "0.5.7",
-  "description": "AI-powered security review plugin for pentesting web applications",
+  "version": "0.6.0",
+  "description": "AI-powered security review plugin for pentesting web applications with NestJS, Rust, Vite support and DDoS/Stress testing",
   "bin": {
     "guardian": "./bin/cli.js"
   },
@@ -18,7 +18,14 @@
     "vulnerability-scanner",
     "ai-security",
     "bug-bounty",
-    "security-audit"
+    "security-audit",
+    "nestjs",
+    "rust",
+    "vite",
+    "voidzero",
+    "ddos",
+    "stress-testing",
+    "owasp"
   ],
   "author": "Yanis",
   "license": "MIT",

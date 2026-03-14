@@ -1,0 +1,48 @@
+id: memory-exhaustion-test
+info:
+  name: Memory Exhaustion Test
+  author: Guardian
+  severity: high
+  description: Tests for memory exhaustion vulnerability via large payloads
+  tags: ddos,memory,exhaustion
+
+requests:
+  - raw:
+      - |
+        POST /api/upload HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+        Content-Length: 10485760
+
+        ------WebKitFormBoundary
+        Content-Disposition: form-data; name="file"; filename="large.txt"
+        Content-Type: text/plain
+
+        {{pad_data}}
+
+        ------WebKitFormBoundary--
+
+      - |
+        GET /api/data?size=10000000 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 413
+          - 414
+
+      - type: word
+        words:
+          - "too large"
+          - "entity too large"
+          - "request too large"
+
+    attack: batteringram
+    threads: 5
+    timeout: 30
+
+    payloads:
+      pad_data:
+        - "{{repeat('A', 10000000)}}"

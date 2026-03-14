@@ -1,0 +1,56 @@
+id: nestjs-ssti-pipe
+info:
+  name: NestJS Server-Side Template Injection via Pipe
+  author: Guardian
+  severity: critical
+  description: Detects SSTI vulnerabilities in NestJS validation pipes
+  tags: nestjs,ssti,template-injection,pipe
+
+requests:
+  - raw:
+      - |
+        GET /api/search?q={{7*7}} HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/search?q=${7*7} HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/search?q={{config}} HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /api/search?q=${process.env} HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        POST /api/search HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"query":"{{7*7}}"}
+      - |
+        POST /api/search HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"query":"${process.env}"}
+
+    matchers-condition: or
+    matchers:
+      - type: regex
+        regex:
+          - "\b49\b"
+          - "\${.*}"
+          - "\{\{.*\}\}"
+        part: body
+
+      - type: word
+        words:
+          - "process.env"
+          - "ROOT"
+          - "NODE_ENV"
+        part: body
+
+      - type: regex
+        regex:
+          - "(Error|Exception).*template"
+          - "template.*render"
+        part: body

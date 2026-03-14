@@ -1,0 +1,43 @@
+id: rust-unsafe-arithmetic
+info:
+  name: Rust Unsafe Arithmetic Operations
+  author: Guardian
+  severity: medium
+  description: Detects potential integer overflow vulnerabilities in Rust applications
+  tags: rust,integer-overflow,arithmetic
+
+requests:
+  - raw:
+      - |
+        POST /api/calculate HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"a": 9223372036854775807, "b": 1}
+      - |
+        POST /api/multiply HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"x": 999999999999999999, "y": 999999999999999999}
+      - |
+        GET /api/items?count=999999999999 HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: or
+    matchers:
+      - type: word
+        words:
+          - "overflow"
+          - "wrapping"
+          - "panicked"
+        part: body
+
+      - type: regex
+        regex:
+          - "(attempt to add with overflow|attempt to multiply with overflow)"
+        part: body
+
+      - type: status
+        status:
+          - 500

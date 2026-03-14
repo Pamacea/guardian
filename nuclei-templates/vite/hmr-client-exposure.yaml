@@ -1,0 +1,38 @@
+id: vite-hmr-client-exposure
+info:
+  name: Vite HMR Client Endpoint Exposure
+  author: Guardian
+  severity: low
+  description: Detects exposed Vite HMR client endpoint in production
+  tags: vite,hmr,dev-server,info-leak
+
+requests:
+  - raw:
+      - |
+        GET /@vite/client HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /@react/vite/client HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /@id/__x00__vite/client HTTP/1.1
+        Host: {{Hostname}}
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "connect("
+          - "socket"
+          - "hmr"
+        condition: or
+
+      - type: regex
+        regex:
+          - "(createHotSocket|HotChannel|__vite_hmr)"
+        part: body

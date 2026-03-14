@@ -1,0 +1,46 @@
+id: connection-exhaustion-test
+info:
+  name: Connection Exhaustion Test
+  author: Guardian
+  severity: high
+  description: Tests for connection pool exhaustion vulnerability
+  tags: ddos,connection,exhaustion
+
+requests:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Connection: keep-alive
+        Keep-Alive: timeout=300, max=10000
+
+      - |
+        GET / HTTP/1.1
+        Host: {{Hostname}}
+        Connection: keep-alive
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 503
+          - 502
+
+      - type: word
+        negative: true
+        words:
+          - "too many connections"
+          - "connection limit"
+
+    attack: batteringram
+    threads: 50
+    timeout: 15
+
+    payloads:
+      Connection:
+        - "keep-alive"
+        - "close"
+      Keep-Alive:
+        - "timeout=300, max=10000"
+        - "timeout=600, max=50000"

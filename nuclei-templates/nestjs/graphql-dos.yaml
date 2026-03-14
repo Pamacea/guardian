@@ -1,0 +1,27 @@
+id: nestjs-graphql-dos
+info:
+  name: NestJS GraphQL DoS via Batch Query
+  author: Guardian
+  severity: high
+  description: Detects GraphQL applications vulnerable to batch query DoS
+  tags: nestjs,graphql,dos,batching
+
+requests:
+  - raw:
+      - |
+        POST /graphql HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        [{"query":"{user(id:1){id}}"},{"query":"{user(id:2){id}}"},{"query":"{user(id:3){id}}"},{"query":"{user(id:4){id}}"},{"query":"{user(id:5){id}}"}]
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - '"data"'
+        part: body
+
+      - type: status
+        status:
+          - 200

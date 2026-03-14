@@ -1,0 +1,40 @@
+id: voidzero-vti-exposure
+info:
+  name: VoidZero VTI Inspector Exposure
+  author: Guardian
+  severity: medium
+  description: Detects exposed Vite Inspector (VTI) interface in production
+  tags: voidzero,vti,inspector,info-leak,vite
+
+requests:
+  - raw:
+      - |
+        GET /__inspect insurgency HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        GET /__inspectpector HTTP/1.1
+        Host: {{Hostname}}
+      - |
+        POST /__inspect HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      - type: word
+        part: body
+        words:
+          - "inspector"
+          - "module-graph"
+          - "transform"
+          - "resolve"
+        condition: or
+
+      - type: regex
+        regex:
+          - "(@vite/inspector|vite-inspector|__inspect)"
+        part: body

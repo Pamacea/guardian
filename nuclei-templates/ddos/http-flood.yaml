@@ -1,0 +1,58 @@
+id: http-flood-resistance
+info:
+  name: HTTP Flood Resistance Test
+  author: Guardian
+  severity: medium
+  description: Tests application resistance to HTTP flood attacks
+  tags: ddos,flood,http
+
+requests:
+  - raw:
+      - |
+        GET /api/test HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0
+        Accept: */*
+
+      - |
+        POST /api/test HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+        Content-Length: 25
+
+        {"test":"data"}
+
+      - |
+        GET /api/products HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0
+
+      - |
+        GET /api/users HTTP/1.1
+        Host: {{Hostname}}
+        User-Agent: Mozilla/5.0
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 201
+          - 429
+
+      - type: word
+        negative: true
+        words:
+          - "rate limit"
+          - "blocked"
+
+    attack: batteringram
+    threads: 20
+    timeout: 10
+
+    payloads:
+      User-Agent:
+        - "Mozilla/5.0"
+        - "curl/7.8"
+        - "Python-urllib/3.9"
+        - "Go-http-client/1.1"

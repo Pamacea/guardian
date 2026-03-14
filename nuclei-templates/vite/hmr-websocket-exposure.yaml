@@ -1,0 +1,39 @@
+id: vite-hmr-websocket-exposure
+info:
+  name: Vite HMR WebSocket Exposure
+  author: Guardian
+  severity: low
+  description: Detects exposed Vite Hot Module Replacement WebSocket in production
+  tags: vite,hmr,websocket,info-leak
+
+requests:
+  - raw:
+      - |
+        GET /__vite_hmr HTTP/1.1
+        Host: {{Hostname}}
+        Connection: Upgrade
+        Upgrade: websocket
+        Sec-WebSocket-Version: 13
+        Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 101
+          - 400
+          - 426
+
+      - type: word
+        part: header
+        words:
+          - "upgrade"
+          - "websocket"
+        condition: or
+
+      - type: word
+        part: body
+        words:
+          - "vite"
+          - "hmr"
+        condition: or

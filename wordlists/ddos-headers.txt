@@ -1,0 +1,73 @@
+# DDoS HTTP Headers Wordlist
+# Headers commonly used in DDoS attacks and rate limit bypass attempts
+
+# IP Spoofing Headers
+X-Forwarded-For
+X-Real-IP
+X-Original-IP
+X-Cluster-Client-IP
+X-Client-IP
+Client-IP
+CF-Connecting-IP
+True-Client-IP
+Via
+X-ProxyUser-IP
+Proxy-Client-IP
+WL-Proxy-Client-IP
+X-Custom-IP-Authorization
+
+# URL/Path Manipulation Headers
+X-Original-URL
+X-Original-URI
+X-Rewrite-URL
+X-Forwarded-Host
+X-Forwarded-Server
+X-Forwarded-Proto
+X-Forwarded-Port
+
+# Authentication Bypass Headers
+X-Auth-Token
+X-Api-Key
+X-Access-Token
+Authorization: Bearer null
+X-Original-For
+X-Originating-IP
+
+# Cache Bypass Headers
+Cache-Control: no-cache
+Pragma: no-cache
+X-Cache-Bypass
+X-No-Cache
+
+# Request Method Override
+X-HTTP-Method-Override
+X-Method-Override
+X-HTTP-Method
+
+# Content Manipulation
+Content-Length: 999999999
+Transfer-Encoding: chunked
+
+# Connection Headers (for connection exhaustion)
+Connection: keep-alive
+Connection: close
+Keep-Alive: timeout=999, max=99999
+
+# Accept Headers (for varying request fingerprint)
+Accept: */*
+Accept: application/json
+Accept: text/html
+Accept: application/xml
+Accept: image/webp
+
+# Encoding Headers
+Accept-Encoding: gzip
+Accept-Encoding: deflate
+Accept-Encoding: br
+Accept-Encoding: identity
+
+# Language Headers
+Accept-Language: en-US
+Accept-Language: fr-FR
+Accept-Language: de-DE
+Accept-Language: *
