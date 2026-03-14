@@ -77,7 +77,7 @@ RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
 # =============================================================================
 # GraphQL Tools (for NestJS)
 # =============================================================================
-RUN git clone --depth 1 https://github.com/doyensec/graphqlmap.git /opt/tools/graphqlmap
+RUN GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/doyensec/graphqlmap.git /opt/tools/graphqlmap
 
 # =============================================================================
 # Wordlists - split into cacheable layers by category

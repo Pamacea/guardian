@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.6] - 2025-03-14
+
+### Fixed
+
+- **Docker Image Build**: Fixed git authentication prompts during build
+  - Added `GIT_TERMINAL_PROMPT=0` to graphqlmap clone to prevent auth prompts
+  - Docker container now correctly clones public repos without asking for credentials
+
 ## [0.6.5] - 2025-03-14
 
 ### Fixed
