@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.8] - 2025-03-14
+
+### Fixed
+
+- **Docker Image Build**: Temporarily disabled graphqlmap tool
+  - graphqlmap repo has authentication issues in Docker builds
+  - All other tools (nikto, whatweb, testssl, jwt_tool, commix) clone successfully
+  - Will investigate and re-enable graphqlmap in future release
+
+### Removed
+
+- graphqlmap (temporarily) due to git authentication failures
+
 ## [0.6.7] - 2025-03-14
 
 ### Fixed

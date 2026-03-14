@@ -76,9 +76,11 @@ RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
 
 # =============================================================================
 # GraphQL Tools (for NestJS)
+# NOTE: graphqlmap temporarily disabled due to git auth issues in Docker
+# The repo may have access restrictions or require special authentication
 # =============================================================================
-RUN git config --global credential.helper "" && \
-    GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/doyensec/graphqlmap.git /opt/tools/graphqlmap
+# RUN git config --global credential.helper "" && \
+#     GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/doyensec/graphqlmap.git /opt/tools/graphqlmap
 
 # =============================================================================
 # Wordlists - split into cacheable layers by category
@@ -187,7 +189,7 @@ COPY --from=builder /tmp/downloads/httpx /usr/local/bin/httpx
 COPY --from=builder /tmp/downloads/vegeta /usr/local/bin/vegeta
 
 # Copy graphqlmap
-COPY --from=builder /opt/tools/graphqlmap /opt/graphqlmap
+# COPY --from=builder /opt/tools/graphqlmap /opt/graphqlmap
 
 # Make binaries executable
 RUN chmod +x /usr/local/bin/ffuf /usr/local/bin/nuclei /usr/local/bin/subfinder \
@@ -199,8 +201,8 @@ RUN ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto && \
     ln -s /opt/whatweb/whatweb /usr/local/bin/whatweb && \
     ln -s /opt/testssl/testssl.sh /usr/local/bin/testssl && \
     ln -s /opt/jwt_tool/jwt_tool.py /usr/local/bin/jwt_tool && \
-    ln -s /opt/commix/commix.py /usr/local/bin/commix && \
-    ln -s /opt/graphqlmap/graphqlmap.py /usr/local/bin/graphqlmap
+    ln -s /opt/commix/commix.py /usr/local/bin/commix
+    # ln -s /opt/graphqlmap/graphqlmap.py /usr/local/bin/graphqlmap
 
 # Copy wordlists from builder
 COPY --from=builder /tmp/wordlists /usr/share/wordlists

@@ -1,7 +1,7 @@
 {
   "name": "@oalacea/guardian",
-  "version": "0.6.7",
-  "description": "AI-powered security review plugin for pentesting web applications with NestJS, Rust, Vite support and DDoS/Stress testing - Hotfix: Disabled git credential helper",
+  "version": "0.6.8",
+  "description": "AI-powered security review plugin for pentesting web applications with NestJS, Rust, Vite support and DDoS/Stress testing - Hotfix: Temporarily disabled graphqlmap",
   "bin": {
     "guardian": "./bin/cli.js"
   },
