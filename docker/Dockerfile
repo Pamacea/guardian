@@ -158,10 +158,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     curl \
     gcc \
     make \
+    libc6-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Rust toolchain
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+# Install Rust toolchain (use default profile to avoid rust-lld linking issues)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile default
 
 # Install Rust security tools
 ENV PATH="/root/.cargo/bin:${PATH}"

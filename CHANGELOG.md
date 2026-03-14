@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2025-03-14
+
+### Fixed
+
+- **Docker Image Build**: Fixed Rust toolchain linking for cargo-audit and cargo-deny
+  - Added libc6-dev to provide CRT files (Scrt1.o, crti.o, crtn.o)
+  - Changed Rust profile from minimal to default (rust-lld linking issues)
+  - cargo-audit and cargo-deny now compile and install correctly
+
 ## [0.6.2] - 2025-03-14
 
 ### Fixed
