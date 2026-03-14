@@ -27,15 +27,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install recent Go version (1.23+) - required for vegeta dependencies
-# golang-go in apt is too old (1.19) - slices package introduced in Go 1.21
-ENV GO_VERSION="1.23.6"
-RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
-    wget -q "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" -O /tmp/go.tar.gz && \
-    tar -C /usr/local -xzf /tmp/go.tar.gz && \
-    rm /tmp/go.tar.gz
-ENV PATH="/usr/local/go/bin:${PATH}"
-
 # Create directories for tools and wordlists
 RUN mkdir -p /opt/tools /tmp/downloads /usr/share/wordlists
 
@@ -76,8 +67,12 @@ RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
 # =============================================================================
 # DDoS & Stress Testing Tools
 # =============================================================================
-RUN GOBIN=/tmp/downloads go install github.com/tsenart/vegeta@latest && \
-    GOBIN=/tmp/downloads go install github.com/rakyll/hey@latest
+# vegeta - use precompiled binary (go install requires Go >= 1.25 which doesn't exist yet)
+# hey is abandoned - using ab (Apache Bench) instead which is already installed
+RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
+    wget -q "https://github.com/tsenart/vegeta/releases/download/v12.11.1/vegeta_12.11.1_linux_${ARCH}.tar.gz" -O /tmp/vegeta.tar.gz && \
+    tar -xzf /tmp/vegeta.tar.gz -C /tmp/downloads vegeta && \
+    rm /tmp/vegeta.tar.gz
 
 # =============================================================================
 # GraphQL Tools (for NestJS)
@@ -190,14 +185,13 @@ COPY --from=builder /tmp/downloads/subfinder /usr/local/bin/subfinder
 COPY --from=builder /tmp/downloads/dalfox /usr/local/bin/dalfox
 COPY --from=builder /tmp/downloads/httpx /usr/local/bin/httpx
 COPY --from=builder /tmp/downloads/vegeta /usr/local/bin/vegeta
-COPY --from=builder /tmp/downloads/hey /usr/local/bin/hey
 
 # Copy graphqlmap
 COPY --from=builder /opt/tools/graphqlmap /opt/graphqlmap
 
 # Make binaries executable
 RUN chmod +x /usr/local/bin/ffuf /usr/local/bin/nuclei /usr/local/bin/subfinder \
-    /usr/local/bin/dalfox /usr/local/bin/httpx /usr/local/bin/vegeta /usr/local/bin/hey \
+    /usr/local/bin/dalfox /usr/local/bin/httpx /usr/local/bin/vegeta \
     /opt/jwt_tool/jwt_tool.py
 
 # Create symlinks for tools

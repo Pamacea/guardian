@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4] - 2025-03-14
+
+### Fixed
+
+- **Docker Image Build**: Fixed vegeta installation by using precompiled binaries
+  - golang.org/x/net@v0.52.0 requires Go >= 1.25 (doesn't exist yet - latest is 1.23.6)
+  - Changed from `go install` to downloading precompiled vegeta binary from releases
+  - Removed `hey` tool (abandoned, no recent releases) - using `ab` (Apache Bench) instead
+  - Removed Go installation from builder stage to reduce image size
+
 ## [0.6.3] - 2025-03-14
 
 ### Fixed
