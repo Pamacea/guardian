@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.7] - 2025-03-14
+
+### Fixed
+
+- **Docker Image Build**: Disabled git credential helper to prevent auth prompts
+  - Added `git config --global credential.helper ""` before graphqlmap clone
+  - Prevents Docker from inheriting credential helper configuration from host
+
 ## [0.6.6] - 2025-03-14
 
 ### Fixed
