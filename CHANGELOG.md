@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2025-03-14
+
+### Fixed
+
+- **Docker Image Build**: Fixed Go version compatibility for vegeta and hey tools
+  - Replaced golang-go (1.19) from apt with Go 1.23.6 from go.dev
+  - golang-go was too old - `slices` package introduced in Go 1.21
+  - vegeta depends on golang.org/x/net@v0.52.0 which requires Go 1.21+
+  - Both tools now install and build correctly
+
 ## [0.6.1] - 2025-03-14
 
 ### Fixed

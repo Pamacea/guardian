@@ -25,8 +25,16 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     git \
     unzip \
     ca-certificates \
-    golang-go \
     && rm -rf /var/lib/apt/lists/*
+
+# Install recent Go version (1.23+) - required for vegeta dependencies
+# golang-go in apt is too old (1.19) - slices package introduced in Go 1.21
+ENV GO_VERSION="1.23.6"
+RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
+    wget -q "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" -O /tmp/go.tar.gz && \
+    tar -C /usr/local -xzf /tmp/go.tar.gz && \
+    rm /tmp/go.tar.gz
+ENV PATH="/usr/local/go/bin:${PATH}"
 
 # Create directories for tools and wordlists
 RUN mkdir -p /opt/tools /tmp/downloads /usr/share/wordlists
