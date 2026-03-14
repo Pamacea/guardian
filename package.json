@@ -1,7 +1,7 @@
 {
   "name": "@oalacea/guardian",
-  "version": "0.6.0",
-  "description": "AI-powered security review plugin for pentesting web applications with NestJS, Rust, Vite support and DDoS/Stress testing",
+  "version": "0.6.1",
+  "description": "AI-powered security review plugin for pentesting web applications with NestJS, Rust, Vite support and DDoS/Stress testing - Hotfix: Fixed Docker image build",
   "bin": {
     "guardian": "./bin/cli.js"
   },

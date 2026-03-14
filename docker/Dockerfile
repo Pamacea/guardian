@@ -25,6 +25,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     git \
     unzip \
     ca-certificates \
+    golang-go \
     && rm -rf /var/lib/apt/lists/*
 
 # Create directories for tools and wordlists
@@ -67,11 +68,8 @@ RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
 # =============================================================================
 # DDoS & Stress Testing Tools
 # =============================================================================
-RUN wget -q "https://github.com/tsenart/vegeta/releases/download/v12.11.1/vegeta_12.11.1_linux_${ARCH}.tar.gz" -O /tmp/vegeta.tar.gz && \
-    wget -q "https://github.com/rakyll/hey/releases/download/v0.1.4/hey_linux_${ARCH}" -O /tmp/hey && \
-    tar -xzf /tmp/vegeta.tar.gz -C /tmp/downloads vegeta && \
-    mv /tmp/hey /tmp/downloads/hey && \
-    rm -rf /tmp/vegeta.tar.gz /tmp/hey
+RUN GOBIN=/tmp/downloads go install github.com/tsenart/vegeta@latest && \
+    GOBIN=/tmp/downloads go install github.com/rakyll/hey@latest
 
 # =============================================================================
 # GraphQL Tools (for NestJS)
