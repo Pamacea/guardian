@@ -76,11 +76,13 @@ RUN ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "amd64") && \
 
 # =============================================================================
 # GraphQL Tools (for NestJS)
-# NOTE: graphqlmap temporarily disabled due to git auth issues in Docker
-# The repo may have access restrictions or require special authentication
-# =============================================================================
-# RUN git config --global credential.helper "" && \
-#     GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/doyensec/graphqlmap.git /opt/tools/graphqlmap
+# NOTE: graphqlmap (doyensec/graphqlmap) was deleted from GitHub
+# Replaced with BeEzz_QL - a CLI GraphQL fuzzing tool by HeyImKarim (active, updated 2026)
+# Using archive download to avoid git credential issues
+RUN wget -q "https://github.com/HeyImKarim/BeEzz_QL/archive/refs/heads/main.zip" -O /tmp/beezzql.zip && \
+    unzip -oq /tmp/beezzql.zip -d /opt/tools && \
+    mv /opt/tools/BeEzz_QL-main /opt/tools/beezzql && \
+    rm /tmp/beezzql.zip
 
 # =============================================================================
 # Wordlists - split into cacheable layers by category
@@ -164,7 +166,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 # Install Rust security tools
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN cargo install cargo-audit --version 0.21.0 && \
-    cargo install cargo-deny --version 0.14.0 && \
+    cargo install cargo-deny --version 0.19.0 && \
     rm -rf /root/.cargo/registry/src /root/.cargo/git
 
 # Copy tools from builder stage
@@ -173,9 +175,13 @@ COPY --from=builder /opt/tools/whatweb /opt/whatweb
 COPY --from=builder /opt/tools/testssl /opt/testssl
 COPY --from=builder /opt/tools/jwt_tool /opt/jwt_tool
 COPY --from=builder /opt/tools/commix /opt/commix
+COPY --from=builder /opt/tools/beezzql /opt/beezzql
 
 # Install jwt_tool Python requirements
 RUN pip install --no-cache-dir -r /opt/jwt_tool/requirements.txt && rm -rf /root/.cache/pip
+
+# Install BeEzz_QL Python requirements
+RUN pip install --no-cache-dir -r /opt/beezzql/requirements.txt && rm -rf /root/.cache/pip
 
 # Install whatweb gem dependency
 RUN gem install --no-document addressable
@@ -188,21 +194,21 @@ COPY --from=builder /tmp/downloads/dalfox /usr/local/bin/dalfox
 COPY --from=builder /tmp/downloads/httpx /usr/local/bin/httpx
 COPY --from=builder /tmp/downloads/vegeta /usr/local/bin/vegeta
 
-# Copy graphqlmap
-# COPY --from=builder /opt/tools/graphqlmap /opt/graphqlmap
-
 # Make binaries executable
 RUN chmod +x /usr/local/bin/ffuf /usr/local/bin/nuclei /usr/local/bin/subfinder \
     /usr/local/bin/dalfox /usr/local/bin/httpx /usr/local/bin/vegeta \
-    /opt/jwt_tool/jwt_tool.py
+    /opt/jwt_tool/jwt_tool.py /opt/beezzql/BeeZz_QL.py
 
 # Create symlinks for tools
 RUN ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto && \
     ln -s /opt/whatweb/whatweb /usr/local/bin/whatweb && \
     ln -s /opt/testssl/testssl.sh /usr/local/bin/testssl && \
     ln -s /opt/jwt_tool/jwt_tool.py /usr/local/bin/jwt_tool && \
-    ln -s /opt/commix/commix.py /usr/local/bin/commix
-    # ln -s /opt/graphqlmap/graphqlmap.py /usr/local/bin/graphqlmap
+    ln -s /opt/commix/commix.py /usr/local/bin/commix && \
+    ln -s /opt/beezzql/BeeZz_QL.py /usr/local/bin/beezzql
+    # Old tools:
+    # ln -s /opt/graphqlmap/graphqlmap.py /usr/local/bin/graphqlmap (deleted)
+    # ln -s /opt/gapql/gapql.py /usr/local/bin/gapql (not found)
 
 # Copy wordlists from builder
 COPY --from=builder /tmp/wordlists /usr/share/wordlists

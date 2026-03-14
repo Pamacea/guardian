@@ -1,7 +1,7 @@
 {
   "name": "@oalacea/guardian",
-  "version": "0.6.8",
-  "description": "AI-powered security review plugin for pentesting web applications with NestJS, Rust, Vite support and DDoS/Stress testing - Hotfix: Temporarily disabled graphqlmap",
+  "version": "0.6.9",
+  "description": "AI-powered security review plugin for pentesting web applications with NestJS, Rust, Vite support and DDoS/Stress testing - Added BeEzz_QL for GraphQL",
   "bin": {
     "guardian": "./bin/cli.js"
   },

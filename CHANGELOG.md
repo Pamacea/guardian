@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.9] - 2025-03-14
+
+### Added
+
+- **BeEzz_QL**: GraphQL fuzzing tool by HeyImKarim
+  - Replaces graphqlmap (doyensec/graphqlmap - deleted from GitHub)
+  - CLI-based tool for GraphQL security testing
+  - Active project (updated March 2026)
+
+### Changed
+
+- **Docker**: Updated cargo-deny from 0.14.0 to 0.19.0
+  - Fixes compilation errors with gix-url dependency
+  - Resolves type annotation conflicts with bstr crate
+
+### Removed
+
+- graphqlmap (repo deleted, no longer maintained)
+
 ## [0.6.8] - 2025-03-14
 
 ### Fixed
